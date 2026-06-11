@@ -18,21 +18,21 @@ public class Main {
      * @param args Argumentos de línea de comandos (no utilizados).
      */
     public static void main(String[] args) {
-        
-        /* 
+
+        /*
          * Configurar FlatLaf como Look & Feel antes de instanciar cualquier ventana.
          * Se utiliza FlatLightLaf para un diseño claro, moderno y consistente.
          */
-        try { 
-            UIManager.setLookAndFeel(new FlatLightLaf()); 
-        } catch (Exception ex) { 
+        try {
+            UIManager.setLookAndFeel(new FlatLightLaf());
+        } catch (Exception ex) {
             System.err.println("No se pudo establecer el Look and Feel de FlatLaf:");
-            ex.printStackTrace(); 
+            ex.printStackTrace();
         }
 
-        /* 
-         * Usar SwingUtilities.invokeLater para asegurar que la creación y 
-         * manipulación de la interfaz gráfica (GUI) ocurra dentro del 
+        /*
+         * Usar SwingUtilities.invokeLater para asegurar que la creación y
+         * manipulación de la interfaz gráfica (GUI) ocurra dentro del
          * Event Dispatch Thread (EDT), previniendo así errores de concurrencia.
          */
         SwingUtilities.invokeLater(new Runnable() {
