@@ -2,26 +2,26 @@ package com.nekomart.dao;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import com.nekomart.utils.DatabaseInitializer;
 
 /**
- * Clase que implementa el patrón Singleton para la gestión de la conexión a la base de datos SQL Server.
+ * Clase que implementa el patrón Singleton para la gestión de la conexión a la
+ * base de datos SQLite.
  * Todo el código está documentado y comentado en español.
  */
 public class ConexionDB {
 
     // Única instancia de la clase (Singleton)
     private static ConexionDB instancia;
-    
+
     // Objeto Connection de java.sql
     private Connection conexion;
 
-    // Configuración por defecto para SQL Server
-    private String host = "localhost";
-    private String puerto = "1433";
-    private String dbNombre = "NekoMartDB";
-    private String usuario = "sa";
-    private String password = "YourStrongPassword123"; // Reemplazar con la contraseña de su servidor
+    // URL de conexión para SQLite local en la raíz del proyecto
+    private final String dbUrl = "jdbc:sqlite:nekomart.db";
 
     // Constructor privado para evitar que se creen instancias fuera de esta clase
     private ConexionDB() {
@@ -43,29 +43,52 @@ public class ConexionDB {
     /**
      * Retorna una conexión activa hacia la base de datos.
      * Si no existe o fue cerrada, establece una nueva.
+     * Verifica la existencia de tablas y las inicializa si es necesario.
      *
      * @return Objeto Connection activo.
-     * @throws SQLException En caso de error en la conexión o credenciales incorrectas.
+     * @throws SQLException En caso de error en la conexión.
      */
     public Connection getConexion() throws SQLException {
         if (conexion == null || conexion.isClosed()) {
             try {
-                // Registrar explícitamente el driver JDBC de Microsoft SQL Server
-                Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-                
-                // Url de conexión con soporte para encriptación de datos obligatoria y confianza en el certificado
-                // (Requerido para evitar problemas SSL comunes en entornos de desarrollo local de SQL Server)
-                String url = String.format(
-                    "jdbc:sqlserver://%s:%s;databaseName=%s;encrypt=true;trustServerCertificate=true;",
-                    host, puerto, dbNombre
-                );
-                
-                conexion = DriverManager.getConnection(url, usuario, password);
+                // Registrar explícitamente el driver JDBC de SQLite
+                Class.forName("org.sqlite.JDBC");
+
+                // Conectar a SQLite
+                conexion = DriverManager.getConnection(dbUrl);
+
+                // Verificar si la tabla 'usuarios' existe para inicializar DB si es necesario
+                if (!tablaExiste("usuarios")) {
+                    System.out.println("Base de datos no encontrada. Creando archivo e inicializando tablas...");
+                    DatabaseInitializer.inicializarBaseDeDatos(conexion);
+                }
+
             } catch (ClassNotFoundException e) {
-                throw new SQLException("No se encontró el driver JDBC de SQL Server (com.microsoft.sqlserver.jdbc.SQLServerDriver).", e);
+                throw new SQLException(
+                        "No se encontró el driver JDBC de SQLite (org.sqlite.JDBC).",
+                        e);
             }
         }
         return conexion;
+    }
+
+    /**
+     * Verifica si una tabla específica existe en la base de datos SQLite.
+     *
+     * @param nombreTabla Nombre de la tabla a buscar.
+     * @return true si la tabla existe, false en caso contrario.
+     */
+    private boolean tablaExiste(String nombreTabla) {
+        String query = "SELECT name FROM sqlite_master WHERE type='table' AND name=?";
+        try (PreparedStatement ps = conexion.prepareStatement(query)) {
+            ps.setString(1, nombreTabla);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al verificar si la tabla existe: " + e.getMessage());
+            return false;
+        }
     }
 
     /**
@@ -83,25 +106,5 @@ public class ConexionDB {
                 conexion = null;
             }
         }
-    }
-
-    /**
-     * Permite reconfigurar las credenciales de conexión en tiempo de ejecución.
-     * Al cambiar de credenciales se cierra la conexión actual para que la siguiente
-     * petición obtenga una con los nuevos datos.
-     *
-     * @param host Nombre o IP del servidor SQL.
-     * @param puerto Puerto del servidor SQL (comúnmente 1433).
-     * @param dbNombre Nombre de la base de datos.
-     * @param usuario Usuario de SQL Server (p. ej. 'sa').
-     * @param password Contraseña de SQL Server.
-     */
-    public void configurarConexion(String host, String puerto, String dbNombre, String usuario, String password) {
-        this.host = host;
-        this.puerto = puerto;
-        this.dbNombre = dbNombre;
-        this.usuario = usuario;
-        this.password = password;
-        cerrarConexion(); // Cierra para forzar nueva conexión con los nuevos parámetros
     }
 }
