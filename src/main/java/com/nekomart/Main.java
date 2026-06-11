@@ -6,6 +6,7 @@ import com.nekomart.ui.LoginFrame;
 import javax.swing.*;
 
 /**
+ * 
  * Clase principal (punto de entrada) de la aplicación NekoMart.
  * Encargada de inicializar el tema visual y lanzar la primera pantalla.
  * Todo el código está comentado en español.

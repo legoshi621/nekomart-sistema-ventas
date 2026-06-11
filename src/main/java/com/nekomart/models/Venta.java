@@ -1,22 +1,22 @@
 package com.nekomart.models;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Clase Modelo (POJO) que representa una Venta en el sistema NekoMart.
+ * La fecha se almacena como String en formato ISO8601 (compatible con SQLite).
  */
 public class Venta {
     private int id;
     private String folio;
-    private Timestamp fecha;
+    private String fecha;         // Formato: "yyyy-MM-dd HH:mm:ss" (SQLite usa TEXT)
     private double total;
     private String metodoPago;
     private double montoRecibido;
     private double cambio;
     private int empleadoId;
-    
+
     // Lista de detalles asociados a esta venta (relación de composición)
     private List<DetalleVenta> detalles;
 
@@ -37,7 +37,8 @@ public class Venta {
     }
 
     // Constructor completo
-    public Venta(int id, String folio, Timestamp fecha, double total, String metodoPago, double montoRecibido, double cambio, int empleadoId) {
+    public Venta(int id, String folio, String fecha, double total, String metodoPago,
+                 double montoRecibido, double cambio, int empleadoId) {
         this.id = id;
         this.folio = folio;
         this.fecha = fecha;
@@ -67,11 +68,11 @@ public class Venta {
         this.folio = folio;
     }
 
-    public Timestamp getFecha() {
+    public String getFecha() {
         return fecha;
     }
 
-    public void setFecha(Timestamp fecha) {
+    public void setFecha(String fecha) {
         this.fecha = fecha;
     }
 
@@ -123,6 +124,7 @@ public class Venta {
         this.detalles = detalles;
     }
 
+    // Método de conveniencia para agregar un detalle a la venta
     public void agregarDetalle(DetalleVenta detalle) {
         if (this.detalles == null) {
             this.detalles = new ArrayList<>();
@@ -135,7 +137,7 @@ public class Venta {
         return "Venta{" +
                 "id=" + id +
                 ", folio='" + folio + '\'' +
-                ", fecha=" + fecha +
+                ", fecha='" + fecha + '\'' +
                 ", total=" + total +
                 ", metodoPago='" + metodoPago + '\'' +
                 ", montoRecibido=" + montoRecibido +

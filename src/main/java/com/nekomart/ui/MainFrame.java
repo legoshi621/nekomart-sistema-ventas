@@ -22,16 +22,13 @@ public class MainFrame extends JFrame {
 
     public MainFrame() {
         setTitle("NekoMart - Sistema de Ventas");
-        setSize(1000, 700);
+        setSize(1100, 750);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
         initComponents();
     }
 
-    /**
-     * Construye y organiza todos los componentes visuales.
-     */
     private void initComponents() {
         Usuario usuario = SessionManager.getInstancia().getUsuarioActual();
 
@@ -57,39 +54,40 @@ public class MainFrame extends JFrame {
         panelSuperior.add(Box.createHorizontalGlue());
         panelSuperior.add(btnCerrarSesion);
 
-        // Panel de contenido según rol
         String rol = usuario.getRol().toUpperCase();
 
         if (rol.equals("ADMIN")) {
             tabbedPane = new JTabbedPane();
 
-            // Pestaña Inventario con el módulo real
+            // Pestaña Inventario
             InventarioFrame inventarioFrame = new InventarioFrame();
             tabbedPane.addTab("📦 Inventario", inventarioFrame);
 
-            // Pestaña Ventas (próximamente)
-            JPanel panelVentas = new JPanel(new GridBagLayout());
-            JLabel lblVentas = new JLabel("🛒 Módulo de Ventas (próximamente)", SwingConstants.CENTER);
-            lblVentas.setFont(new Font("Segoe UI", Font.BOLD, 24));
-            lblVentas.setForeground(new Color(30, 58, 138));
-            panelVentas.add(lblVentas);
-            tabbedPane.addTab("Ventas", panelVentas);
+            // Pestaña Ventas (POS)
+            VentasFrame ventasFrame = new VentasFrame();
+            tabbedPane.addTab("🛒 Ventas (POS)", ventasFrame);
+
+            // Pestaña Historial de Ventas
+            HistorialVentasFrame historialFrame = new HistorialVentasFrame();
+            tabbedPane.addTab("📋 Historial", historialFrame);
 
             setLayout(new BorderLayout());
             add(panelSuperior, BorderLayout.NORTH);
             add(tabbedPane, BorderLayout.CENTER);
 
         } else {
-            // Empleado solo ve Ventas
-            JPanel panelContenido = new JPanel(new GridBagLayout());
-            JLabel lblVentas = new JLabel("🛒 Módulo de Ventas (próximamente)", SwingConstants.CENTER);
-            lblVentas.setFont(new Font("Segoe UI", Font.BOLD, 24));
-            lblVentas.setForeground(new Color(30, 58, 138));
-            panelContenido.add(lblVentas);
+            // Empleado solo ve Ventas e Historial
+            tabbedPane = new JTabbedPane();
+
+            VentasFrame ventasFrame = new VentasFrame();
+            tabbedPane.addTab("🛒 Ventas (POS)", ventasFrame);
+
+            HistorialVentasFrame historialFrame = new HistorialVentasFrame();
+            tabbedPane.addTab("📋 Historial", historialFrame);
 
             setLayout(new BorderLayout());
             add(panelSuperior, BorderLayout.NORTH);
-            add(panelContenido, BorderLayout.CENTER);
+            add(tabbedPane, BorderLayout.CENTER);
         }
 
         btnCerrarSesion.addActionListener(new ActionListener() {
@@ -100,9 +98,6 @@ public class MainFrame extends JFrame {
         });
     }
 
-    /**
-     * Cierra la sesión y regresa al login.
-     */
     private void cerrarSesion() {
         SessionManager.getInstancia().cerrarSesion();
         LoginFrame loginFrame = new LoginFrame();
