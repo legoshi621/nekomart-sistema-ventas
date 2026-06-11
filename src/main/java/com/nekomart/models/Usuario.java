@@ -9,6 +9,7 @@ public class Usuario {
     private String passwordHash;
     private String rol; // Valores esperados: "ADMIN", "EMPLEADO"
     private String nombreCompleto;
+    private String fotoRuta; // Ruta de la foto de perfil del usuario
 
     // Constructor vacío
     public Usuario() {
@@ -73,6 +74,14 @@ public class Usuario {
         this.nombreCompleto = nombreCompleto;
     }
 
+    public String getFotoRuta() {
+        return fotoRuta;
+    }
+
+    public void setFotoRuta(String fotoRuta) {
+        this.fotoRuta = fotoRuta;
+    }
+
     @Override
     public String toString() {
         return "Usuario{" +
@@ -80,6 +89,7 @@ public class Usuario {
                 ", username='" + username + '\'' +
                 ", rol='" + rol + '\'' +
                 ", nombreCompleto='" + nombreCompleto + '\'' +
+                ", fotoRuta='" + fotoRuta + '\'' +
                 '}';
     }
 }

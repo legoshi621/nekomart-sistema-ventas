@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS usuarios (
     username TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
     rol TEXT NOT NULL CHECK (rol IN ('ADMIN', 'EMPLEADO')),
-    nombre_completo TEXT NOT NULL
+    nombre_completo TEXT NOT NULL,
+    foto_ruta TEXT
 );
 
 -- 2. Tabla de Productos
@@ -18,7 +19,8 @@ CREATE TABLE IF NOT EXISTS productos (
     precio REAL NOT NULL CHECK (precio >= 0),
     stock INTEGER NOT NULL CHECK (stock >= 0),
     stock_minimo INTEGER NOT NULL DEFAULT 0 CHECK (stock_minimo >= 0),
-    categoria TEXT NOT NULL
+    categoria TEXT NOT NULL,
+    imagen_ruta TEXT
 );
 
 -- 3. Tabla de Ventas (Cabecera)

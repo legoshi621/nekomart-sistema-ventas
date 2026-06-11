@@ -3,213 +3,176 @@ package com.nekomart.dao;
 import com.nekomart.models.Usuario;
 import com.nekomart.utils.PasswordUtils;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Clase de Acceso a Datos (DAO) para la entidad 'Usuario'.
- * Implementa consultas preparadas (PreparedStatement) para evitar ataques de inyección SQL.
- * Todo el código está en español.
+ * DAO para gestionar operaciones de usuarios en la base de datos SQLite.
+ * Todo el código está comentado en español.
  */
 public class UsuarioDAO {
 
-    private final ConexionDB conexionDB = ConexionDB.getInstancia();
-
     /**
-     * Valida el acceso de un usuario al sistema mediante su nombre de usuario y contraseña.
-     *
-     * @param username Nombre de usuario.
-     * @param password Contraseña en texto plano a verificar.
-     * @return Objeto Usuario si las credenciales coinciden con el registro, de lo contrario null.
+     * Valida las credenciales de un usuario al iniciar sesión.
      */
-    public Usuario login(String username, String password) {
-        String query = "SELECT id, username, password_hash, rol, nombre_completo FROM usuarios WHERE username = ?";
-        
-        try (Connection conn = conexionDB.getConexion();
-             PreparedStatement ps = conn.prepareStatement(query)) {
-            
-            ps.setString(1, username);
-            
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    String passwordHashBD = rs.getString("password_hash");
-                    
-                    // Validar usando la utilidad segura de contraseñas
-                    if (PasswordUtils.verifyPassword(password, passwordHashBD)) {
-                        return new Usuario(
-                            rs.getInt("id"),
-                            rs.getString("username"),
-                            passwordHashBD,
-                            rs.getString("rol"),
-                            rs.getString("nombre_completo")
-                        );
-                    }
+    public Usuario login(String username, String passwordPlano) {
+        String sql = "SELECT id, username, password_hash, rol, nombre_completo, foto_ruta FROM usuarios WHERE username = ?";
+        try (Connection conn = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                String hashDB = rs.getString("password_hash");
+                String hashInput = PasswordUtils.hashPassword(passwordPlano);
+                if (hashDB.equals(hashInput)) {
+                    Usuario u = new Usuario();
+                    u.setId(rs.getInt("id"));
+                    u.setUsername(rs.getString("username"));
+                    u.setRol(rs.getString("rol"));
+                    u.setNombreCompleto(rs.getString("nombre_completo"));
+                    u.setFotoRuta(rs.getString("foto_ruta"));
+                    return u;
                 }
             }
-        } catch (SQLException e) {
-            System.err.println("Error durante el inicio de sesión del usuario: " + e.getMessage());
+        } catch (SQLException e) { 
+            System.err.println("Error login: " + e.getMessage()); 
         }
         return null;
     }
 
     /**
-     * Registra un nuevo usuario en la base de datos.
-     * Encripta automáticamente la contraseña provista antes de realizar el guardado.
-     *
-     * @param usuario Objeto usuario con los datos y la contraseña en texto plano en su atributo passwordHash.
-     * @return true si el registro fue exitoso, false en caso contrario.
-     */
-    public boolean insertar(Usuario usuario) {
-        String query = "INSERT INTO usuarios (username, password_hash, rol, nombre_completo) VALUES (?, ?, ?, ?)";
-        
-        try (Connection conn = conexionDB.getConexion();
-             PreparedStatement ps = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
-            
-            ps.setString(1, usuario.getUsername());
-            
-            // Encriptar contraseña en SHA-256 antes de enviar a base de datos
-            String passwordEncriptada = PasswordUtils.hashPassword(usuario.getPasswordHash());
-            ps.setString(2, passwordEncriptada);
-            
-            ps.setString(3, usuario.getRol());
-            ps.setString(4, usuario.getNombreCompleto());
-            
-            int filasAfectadas = ps.executeUpdate();
-            if (filasAfectadas > 0) {
-                // Recuperar la clave ID generada por SQL Server
-                try (ResultSet rsGeneratedKeys = ps.getGeneratedKeys()) {
-                    if (rsGeneratedKeys.next()) {
-                        usuario.setId(rsGeneratedKeys.getInt(1));
-                    }
-                }
-                return true;
-            }
-        } catch (SQLException e) {
-            System.err.println("Error al insertar el usuario: " + e.getMessage());
-        }
-        return false;
-    }
-
-    /**
-     * Obtiene la información de un usuario dado su identificador único.
-     *
-     * @param id Identificador único del usuario.
-     * @return Objeto Usuario con la información recuperada o null si no existe.
-     */
-    public Usuario buscarPorId(int id) {
-        String query = "SELECT id, username, password_hash, rol, nombre_completo FROM usuarios WHERE id = ?";
-        
-        try (Connection conn = conexionDB.getConexion();
-             PreparedStatement ps = conn.prepareStatement(query)) {
-            
-            ps.setInt(1, id);
-            
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return new Usuario(
-                        rs.getInt("id"),
-                        rs.getString("username"),
-                        rs.getString("password_hash"),
-                        rs.getString("rol"),
-                        rs.getString("nombre_completo")
-                    );
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("Error al buscar usuario por ID: " + e.getMessage());
-        }
-        return null;
-    }
-
-    /**
-     * Retorna una lista con todos los usuarios registrados en el sistema.
-     *
-     * @return Lista de usuarios.
+     * Lista todos los usuarios de la base de datos.
      */
     public List<Usuario> listarTodos() {
         List<Usuario> lista = new ArrayList<>();
-        String query = "SELECT id, username, password_hash, rol, nombre_completo FROM usuarios";
-        
-        try (Connection conn = conexionDB.getConexion();
-             PreparedStatement ps = conn.prepareStatement(query);
-             ResultSet rs = ps.executeQuery()) {
-            
+        String sql = "SELECT id, username, rol, nombre_completo, foto_ruta FROM usuarios";
+        try (Connection conn = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
-                lista.add(new Usuario(
-                    rs.getInt("id"),
-                    rs.getString("username"),
-                    rs.getString("password_hash"),
-                    rs.getString("rol"),
-                    rs.getString("nombre_completo")
-                ));
+                Usuario u = new Usuario();
+                u.setId(rs.getInt("id"));
+                u.setUsername(rs.getString("username"));
+                u.setRol(rs.getString("rol"));
+                u.setNombreCompleto(rs.getString("nombre_completo"));
+                u.setFotoRuta(rs.getString("foto_ruta"));
+                lista.add(u);
             }
-        } catch (SQLException e) {
-            System.err.println("Error al listar los usuarios: " + e.getMessage());
+        } catch (SQLException e) { 
+            System.err.println("Error listar: " + e.getMessage()); 
         }
         return lista;
     }
 
     /**
-     * Actualiza la información de un usuario en el sistema.
-     *
-     * @param usuario Objeto usuario con los datos actualizados.
-     * @param actualizarPassword true si se desea modificar la contraseña, false si se mantiene la anterior.
-     * @return true si la operación afectó al menos un registro, de lo contrario false.
+     * Crea un nuevo usuario.
      */
-    public boolean actualizar(Usuario usuario, boolean actualizarPassword) {
-        String query;
-        if (actualizarPassword) {
-            query = "UPDATE usuarios SET username = ?, password_hash = ?, rol = ?, nombre_completo = ? WHERE id = ?";
-        } else {
-            query = "UPDATE usuarios SET username = ?, rol = ?, nombre_completo = ? WHERE id = ?";
+    public boolean crear(Usuario u, String passwordPlano) {
+        String sql = "INSERT INTO usuarios (username, password_hash, rol, nombre_completo, foto_ruta) VALUES (?, ?, ?, ?, ?)";
+        try (Connection conn = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, u.getUsername());
+            stmt.setString(2, PasswordUtils.hashPassword(passwordPlano));
+            stmt.setString(3, u.getRol());
+            stmt.setString(4, u.getNombreCompleto());
+            stmt.setString(5, u.getFotoRuta());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) { 
+            System.err.println("Error crear: " + e.getMessage()); 
+            return false; 
         }
-        
-        try (Connection conn = conexionDB.getConexion();
-             PreparedStatement ps = conn.prepareStatement(query)) {
-            
-            ps.setString(1, usuario.getUsername());
-            
-            if (actualizarPassword) {
-                String passwordEncriptada = PasswordUtils.hashPassword(usuario.getPasswordHash());
-                ps.setString(2, passwordEncriptada);
-                ps.setString(3, usuario.getRol());
-                ps.setString(4, usuario.getNombreCompleto());
-                ps.setInt(5, usuario.getId());
-            } else {
-                ps.setString(2, usuario.getRol());
-                ps.setString(3, usuario.getNombreCompleto());
-                ps.setInt(4, usuario.getId());
-            }
-            
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            System.err.println("Error al actualizar el usuario: " + e.getMessage());
-        }
-        return false;
     }
 
     /**
-     * Elimina un usuario del sistema por su ID.
-     *
-     * @param id Identificador único del usuario a eliminar.
-     * @return true si la eliminación se completó satisfactoriamente.
+     * Inserta un usuario con contraseña ya hasheada.
+     */
+    public boolean insertar(Usuario u) {
+        String sql = "INSERT INTO usuarios (username, password_hash, rol, nombre_completo, foto_ruta) VALUES (?, ?, ?, ?, ?)";
+        try (Connection conn = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, u.getUsername());
+            stmt.setString(2, PasswordUtils.hashPassword(u.getPasswordHash()));
+            stmt.setString(3, u.getRol());
+            stmt.setString(4, u.getNombreCompleto());
+            stmt.setString(5, u.getFotoRuta());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) { 
+            System.err.println("Error insertar: " + e.getMessage()); 
+            return false; 
+        }
+    }
+
+    /**
+     * Actualiza un usuario existente, con opción de cambiar o no su contraseña.
+     */
+    public boolean actualizar(Usuario u, boolean cambiarPassword) {
+        String sql;
+        if (cambiarPassword) {
+            sql = "UPDATE usuarios SET username = ?, password_hash = ?, rol = ?, nombre_completo = ?, foto_ruta = ? WHERE id = ?";
+        } else {
+            sql = "UPDATE usuarios SET username = ?, rol = ?, nombre_completo = ?, foto_ruta = ? WHERE id = ?";
+        }
+        try (Connection conn = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, u.getUsername());
+            if (cambiarPassword) {
+                stmt.setString(2, PasswordUtils.hashPassword(u.getPasswordHash()));
+                stmt.setString(3, u.getRol());
+                stmt.setString(4, u.getNombreCompleto());
+                stmt.setString(5, u.getFotoRuta());
+                stmt.setInt(6, u.getId());
+            } else {
+                stmt.setString(2, u.getRol());
+                stmt.setString(3, u.getNombreCompleto());
+                stmt.setString(4, u.getFotoRuta());
+                stmt.setInt(5, u.getId());
+            }
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error actualizar: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Busca un usuario por su ID.
+     */
+    public Usuario buscarPorId(int id) {
+        String sql = "SELECT id, username, password_hash, rol, nombre_completo, foto_ruta FROM usuarios WHERE id = ?";
+        try (Connection conn = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                Usuario u = new Usuario();
+                u.setId(rs.getInt("id"));
+                u.setUsername(rs.getString("username"));
+                u.setPasswordHash(rs.getString("password_hash"));
+                u.setRol(rs.getString("rol"));
+                u.setNombreCompleto(rs.getString("nombre_completo"));
+                u.setFotoRuta(rs.getString("foto_ruta"));
+                return u;
+            }
+        } catch (SQLException e) { 
+            System.err.println("Error buscarPorId: " + e.getMessage()); 
+        }
+        return null;
+    }
+
+    /**
+     * Elimina un usuario por su ID.
      */
     public boolean eliminar(int id) {
-        String query = "DELETE FROM usuarios WHERE id = ?";
-        
-        try (Connection conn = conexionDB.getConexion();
-             PreparedStatement ps = conn.prepareStatement(query)) {
-            
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            System.err.println("Error al eliminar el usuario: " + e.getMessage());
+        String sql = "DELETE FROM usuarios WHERE id = ?";
+        try (Connection conn = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) { 
+            System.err.println("Error eliminar: " + e.getMessage()); 
+            return false; 
         }
-        return false;
     }
 }

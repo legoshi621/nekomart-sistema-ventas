@@ -96,4 +96,16 @@ public class VentaService {
             return new ArrayList<>();
         }
     }
+
+    /**
+     * Obtiene las ventas filtradas por un rango de fechas.
+     */
+    public List<Venta> obtenerVentasPorFecha(String fechaInicio, String fechaFin) {
+        try {
+            return ventaDAO.listarPorRangoFechas(fechaInicio, fechaFin);
+        } catch (Exception e) {
+            System.err.println("Error al obtener ventas por fecha: " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
 }
