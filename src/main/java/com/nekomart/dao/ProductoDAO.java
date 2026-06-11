@@ -1,7 +1,6 @@
 package com.nekomart.dao;
 
 import com.nekomart.models.Producto;
-import com.nekomart.dao.ConexionDB;
 
 import java.sql.*;
 import java.util.ArrayList;
