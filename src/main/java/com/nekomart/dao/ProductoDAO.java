@@ -17,7 +17,7 @@ public class ProductoDAO {
      */
     public List<Producto> listarTodos() {
         List<Producto> productos = new ArrayList<>();
-        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria FROM productos";
+        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria, imagen_ruta FROM productos";
 
         try (Connection conn = ConexionDB.getInstancia().getConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql);
@@ -36,7 +36,7 @@ public class ProductoDAO {
      * Busca un producto por su ID.
      */
     public Producto buscarPorId(int id) {
-        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria FROM productos WHERE id = ?";
+        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria, imagen_ruta FROM productos WHERE id = ?";
 
         try (Connection conn = ConexionDB.getInstancia().getConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -57,7 +57,7 @@ public class ProductoDAO {
      * Busca un producto por su código.
      */
     public Producto buscarPorCodigo(String codigo) {
-        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria FROM productos WHERE codigo = ?";
+        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria, imagen_ruta FROM productos WHERE codigo = ?";
 
         try (Connection conn = ConexionDB.getInstancia().getConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -78,7 +78,7 @@ public class ProductoDAO {
      * Crea un nuevo producto en la base de datos.
      */
     public boolean crear(Producto producto) {
-        String sql = "INSERT INTO productos (codigo, nombre, precio, stock, stock_minimo, categoria) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO productos (codigo, nombre, precio, stock, stock_minimo, categoria, imagen_ruta) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = ConexionDB.getInstancia().getConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -89,6 +89,7 @@ public class ProductoDAO {
             stmt.setInt(4, producto.getStock());
             stmt.setInt(5, producto.getStockMinimo());
             stmt.setString(6, producto.getCategoria());
+            stmt.setString(7, producto.getImagenRuta());
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -101,7 +102,7 @@ public class ProductoDAO {
      * Actualiza un producto existente.
      */
     public boolean actualizar(Producto producto) {
-        String sql = "UPDATE productos SET codigo=?, nombre=?, precio=?, stock=?, stock_minimo=?, categoria=? WHERE id=?";
+        String sql = "UPDATE productos SET codigo=?, nombre=?, precio=?, stock=?, stock_minimo=?, categoria=?, imagen_ruta=? WHERE id=?";
 
         try (Connection conn = ConexionDB.getInstancia().getConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -112,7 +113,8 @@ public class ProductoDAO {
             stmt.setInt(4, producto.getStock());
             stmt.setInt(5, producto.getStockMinimo());
             stmt.setString(6, producto.getCategoria());
-            stmt.setInt(7, producto.getId());
+            stmt.setString(7, producto.getImagenRuta());
+            stmt.setInt(8, producto.getId());
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -143,7 +145,7 @@ public class ProductoDAO {
      */
     public List<Producto> buscarPorNombre(String nombre) {
         List<Producto> productos = new ArrayList<>();
-        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria FROM productos WHERE nombre LIKE ?";
+        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria, imagen_ruta FROM productos WHERE nombre LIKE ?";
 
         try (Connection conn = ConexionDB.getInstancia().getConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -165,7 +167,7 @@ public class ProductoDAO {
      */
     public List<Producto> buscarPorCategoria(String categoria) {
         List<Producto> productos = new ArrayList<>();
-        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria FROM productos WHERE categoria LIKE ?";
+        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria, imagen_ruta FROM productos WHERE categoria LIKE ?";
 
         try (Connection conn = ConexionDB.getInstancia().getConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -207,7 +209,7 @@ public class ProductoDAO {
      */
     public List<Producto> obtenerProductosBajoStock() {
         List<Producto> productos = new ArrayList<>();
-        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria FROM productos WHERE stock <= stock_minimo";
+        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria, imagen_ruta FROM productos WHERE stock <= stock_minimo";
 
         try (Connection conn = ConexionDB.getInstancia().getConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql);
@@ -234,6 +236,7 @@ public class ProductoDAO {
         p.setStock(rs.getInt("stock"));
         p.setStockMinimo(rs.getInt("stock_minimo"));
         p.setCategoria(rs.getString("categoria"));
+        p.setImagenRuta(rs.getString("imagen_ruta"));
         return p;
     }
 }

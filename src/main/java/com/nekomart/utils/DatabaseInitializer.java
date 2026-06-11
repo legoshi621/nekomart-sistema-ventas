@@ -51,4 +51,47 @@ public class DatabaseInitializer {
             System.err.println("Error al ejecutar el script de inicialización: " + e.getMessage());
         }
     }
+
+    /**
+     * Verifica si existen las columnas de imágenes y fotos, y las agrega si hacen falta.
+     */
+    public static void verificarYMigrarColumnas(Connection conexion) {
+        // Migración de imagen_ruta en la tabla productos
+        if (!columnaExiste(conexion, "productos", "imagen_ruta")) {
+            try (Statement stmt = conexion.createStatement()) {
+                stmt.execute("ALTER TABLE productos ADD COLUMN imagen_ruta TEXT;");
+                System.out.println("✅ Columna 'imagen_ruta' agregada a 'productos' exitosamente.");
+            } catch (Exception e) {
+                System.err.println("Error al agregar columna 'imagen_ruta': " + e.getMessage());
+            }
+        }
+
+        // Migración de foto_ruta en la tabla usuarios
+        if (!columnaExiste(conexion, "usuarios", "foto_ruta")) {
+            try (Statement stmt = conexion.createStatement()) {
+                stmt.execute("ALTER TABLE usuarios ADD COLUMN foto_ruta TEXT;");
+                System.out.println("✅ Columna 'foto_ruta' agregada a 'usuarios' exitosamente.");
+            } catch (Exception e) {
+                System.err.println("Error al agregar columna 'foto_ruta': " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Comprueba si una columna existe en una tabla específica.
+     */
+    private static boolean columnaExiste(Connection conexion, String tabla, String columna) {
+        String sql = "PRAGMA table_info(" + tabla + ")";
+        try (Statement stmt = conexion.createStatement();
+             java.sql.ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                if (columna.equalsIgnoreCase(rs.getString("name"))) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error al consultar pragma info para " + tabla + ": " + e.getMessage());
+        }
+        return false;
+    }
 }

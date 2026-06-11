@@ -11,6 +11,7 @@ public class Producto {
     private int stock;
     private int stockMinimo;
     private String categoria;
+    private String imagenRuta; // Ruta de la imagen del producto
 
     // Constructor vacío
     public Producto() {
@@ -26,7 +27,7 @@ public class Producto {
         this.categoria = categoria;
     }
 
-    // Constructor completo (útil para consultas de base de datos)
+    // Constructor completo
     public Producto(int id, String codigo, String nombre, double precio, int stock, int stockMinimo, String categoria) {
         this.id = id;
         this.codigo = codigo;
@@ -95,6 +96,14 @@ public class Producto {
         this.categoria = categoria;
     }
 
+    public String getImagenRuta() {
+        return imagenRuta;
+    }
+
+    public void setImagenRuta(String imagenRuta) {
+        this.imagenRuta = imagenRuta;
+    }
+
     @Override
     public String toString() {
         return "Producto{" +
@@ -105,6 +114,7 @@ public class Producto {
                 ", stock=" + stock +
                 ", stockMinimo=" + stockMinimo +
                 ", categoria='" + categoria + '\'' +
+                ", imagenRuta='" + imagenRuta + '\'' +
                 '}';
     }
 }

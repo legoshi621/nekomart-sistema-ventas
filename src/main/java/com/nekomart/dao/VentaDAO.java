@@ -154,6 +154,38 @@ public class VentaDAO {
     }
 
     /**
+     * Lista las ventas registradas dentro de un rango de fechas.
+     */
+    public List<Venta> listarPorRangoFechas(String fechaInicio, String fechaFin) {
+        List<Venta> ventas = new ArrayList<>();
+        String sql = "SELECT id, folio, fecha, total, metodo_pago, monto_recibido, cambio, empleado_id FROM ventas " +
+                     "WHERE DATE(fecha) >= DATE(?) AND DATE(fecha) <= DATE(?) ORDER BY fecha DESC";
+
+        try (Connection conn = ConexionDB.getInstancia().getConexion();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, fechaInicio);
+            stmt.setString(2, fechaFin);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Venta v = new Venta();
+                    v.setId(rs.getInt("id"));
+                    v.setFolio(rs.getString("folio"));
+                    v.setFecha(rs.getString("fecha"));
+                    v.setTotal(rs.getDouble("total"));
+                    v.setMetodoPago(rs.getString("metodo_pago"));
+                    v.setMontoRecibido(rs.getDouble("monto_recibido"));
+                    v.setCambio(rs.getDouble("cambio"));
+                    v.setEmpleadoId(rs.getInt("empleado_id"));
+                    ventas.add(v);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al listar ventas por rango: " + e.getMessage());
+        }
+        return ventas;
+    }
+
+    /**
      * Genera un folio único para la venta
      */
     public String generarFolio() {
