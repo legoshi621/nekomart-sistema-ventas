@@ -1,0 +1,34 @@
+# Base de datos
+nekomart.db
+*.db
+
+# Logs de Java
+hs_err_pid*.log
+replay_pid*.log
+
+# Archivos compilados de Maven
+target/
+*.class
+*.jar
+
+# Archivos de IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# Archivos temporales
+*.tmp
+*.bak
+*.swp
+*~
+
+# Carpetas generadas
+imagenes/
+facturas/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
