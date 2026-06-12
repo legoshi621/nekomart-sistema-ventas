@@ -8,16 +8,17 @@ import java.util.List;
 
 /**
  * DAO para gestionar operaciones CRUD de productos en la base de datos SQLite.
+ * Admite fechas de caducidad, lotes y borrado lógico (Soft Delete).
  * Todo el código está comentado en español.
  */
 public class ProductoDAO {
 
     /**
-     * Lista todos los productos de la base de datos.
+     * Lista todos los productos activos de la base de datos (activo = 1).
      */
     public List<Producto> listarTodos() {
         List<Producto> productos = new ArrayList<>();
-        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria, imagen_ruta FROM productos";
+        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria, imagen_ruta, fecha_caducidad, lote, activo FROM productos WHERE activo = 1";
 
         try (Connection conn = ConexionDB.getInstancia().getConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql);
@@ -33,10 +34,10 @@ public class ProductoDAO {
     }
 
     /**
-     * Busca un producto por su ID.
+     * Busca un producto por su ID (sin importar su estado activo/inactivo).
      */
     public Producto buscarPorId(int id) {
-        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria, imagen_ruta FROM productos WHERE id = ?";
+        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria, imagen_ruta, fecha_caducidad, lote, activo FROM productos WHERE id = ?";
 
         try (Connection conn = ConexionDB.getInstancia().getConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -57,7 +58,7 @@ public class ProductoDAO {
      * Busca un producto por su código.
      */
     public Producto buscarPorCodigo(String codigo) {
-        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria, imagen_ruta FROM productos WHERE codigo = ?";
+        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria, imagen_ruta, fecha_caducidad, lote, activo FROM productos WHERE codigo = ?";
 
         try (Connection conn = ConexionDB.getInstancia().getConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -78,7 +79,7 @@ public class ProductoDAO {
      * Crea un nuevo producto en la base de datos.
      */
     public boolean crear(Producto producto) {
-        String sql = "INSERT INTO productos (codigo, nombre, precio, stock, stock_minimo, categoria, imagen_ruta) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO productos (codigo, nombre, precio, stock, stock_minimo, categoria, imagen_ruta, fecha_caducidad, lote, activo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = ConexionDB.getInstancia().getConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -90,6 +91,9 @@ public class ProductoDAO {
             stmt.setInt(5, producto.getStockMinimo());
             stmt.setString(6, producto.getCategoria());
             stmt.setString(7, producto.getImagenRuta());
+            stmt.setString(8, producto.getFechaCaducidad());
+            stmt.setString(9, producto.getLote());
+            stmt.setInt(10, producto.isActivo() ? 1 : 0);
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -102,7 +106,7 @@ public class ProductoDAO {
      * Actualiza un producto existente.
      */
     public boolean actualizar(Producto producto) {
-        String sql = "UPDATE productos SET codigo=?, nombre=?, precio=?, stock=?, stock_minimo=?, categoria=?, imagen_ruta=? WHERE id=?";
+        String sql = "UPDATE productos SET codigo=?, nombre=?, precio=?, stock=?, stock_minimo=?, categoria=?, imagen_ruta=?, fecha_caducidad=?, lote=?, activo=? WHERE id=?";
 
         try (Connection conn = ConexionDB.getInstancia().getConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -114,7 +118,10 @@ public class ProductoDAO {
             stmt.setInt(5, producto.getStockMinimo());
             stmt.setString(6, producto.getCategoria());
             stmt.setString(7, producto.getImagenRuta());
-            stmt.setInt(8, producto.getId());
+            stmt.setString(8, producto.getFechaCaducidad());
+            stmt.setString(9, producto.getLote());
+            stmt.setInt(10, producto.isActivo() ? 1 : 0);
+            stmt.setInt(11, producto.getId());
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -124,10 +131,10 @@ public class ProductoDAO {
     }
 
     /**
-     * Elimina un producto por su ID.
+     * Realiza un borrado lógico (Soft Delete) de un producto, cambiando 'activo' a 0.
      */
     public boolean eliminar(int id) {
-        String sql = "DELETE FROM productos WHERE id = ?";
+        String sql = "UPDATE productos SET activo = 0 WHERE id = ?";
 
         try (Connection conn = ConexionDB.getInstancia().getConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -135,17 +142,17 @@ public class ProductoDAO {
             stmt.setInt(1, id);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("Error al eliminar producto: " + e.getMessage());
+            System.err.println("Error al eliminar (Soft Delete) producto: " + e.getMessage());
             return false;
         }
     }
 
     /**
-     * Busca productos por nombre (búsqueda parcial).
+     * Busca productos activos por nombre (búsqueda parcial).
      */
     public List<Producto> buscarPorNombre(String nombre) {
         List<Producto> productos = new ArrayList<>();
-        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria, imagen_ruta FROM productos WHERE nombre LIKE ?";
+        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria, imagen_ruta, fecha_caducidad, lote, activo FROM productos WHERE nombre LIKE ? AND activo = 1";
 
         try (Connection conn = ConexionDB.getInstancia().getConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -163,11 +170,11 @@ public class ProductoDAO {
     }
 
     /**
-     * Busca productos por categoría.
+     * Busca productos activos por categoría.
      */
     public List<Producto> buscarPorCategoria(String categoria) {
         List<Producto> productos = new ArrayList<>();
-        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria, imagen_ruta FROM productos WHERE categoria LIKE ?";
+        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria, imagen_ruta, fecha_caducidad, lote, activo FROM productos WHERE categoria LIKE ? AND activo = 1";
 
         try (Connection conn = ConexionDB.getInstancia().getConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -185,10 +192,10 @@ public class ProductoDAO {
     }
 
     /**
-     * Actualiza el stock de un producto (resta la cantidad vendida).
+     * Actualiza el stock de un producto activo (resta la cantidad vendida).
      */
     public boolean actualizarStock(int productoId, int cantidad) {
-        String sql = "UPDATE productos SET stock = stock - ? WHERE id = ? AND stock >= ?";
+        String sql = "UPDATE productos SET stock = stock - ? WHERE id = ? AND stock >= ? AND activo = 1";
 
         try (Connection conn = ConexionDB.getInstancia().getConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -205,11 +212,34 @@ public class ProductoDAO {
     }
 
     /**
-     * Obtiene productos con stock menor o igual al stock mínimo.
+     * Suma stock a un producto activo (para entradas de mercancía).
+     *
+     * @param productoId ID del producto al que se le sumará stock
+     * @param cantidad   Cantidad de unidades a agregar
+     * @return true si la operación fue exitosa, false en caso de error
+     */
+    public boolean sumarStock(int productoId, int cantidad) {
+        String sql = "UPDATE productos SET stock = stock + ? WHERE id = ? AND activo = 1";
+
+        try (Connection conn = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, cantidad);
+            stmt.setInt(2, productoId);
+
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error al sumar stock: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Obtiene productos activos con stock menor o igual al stock mínimo.
      */
     public List<Producto> obtenerProductosBajoStock() {
         List<Producto> productos = new ArrayList<>();
-        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria, imagen_ruta FROM productos WHERE stock <= stock_minimo";
+        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria, imagen_ruta, fecha_caducidad, lote, activo FROM productos WHERE stock <= stock_minimo AND activo = 1";
 
         try (Connection conn = ConexionDB.getInstancia().getConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql);
@@ -220,6 +250,28 @@ public class ProductoDAO {
             }
         } catch (SQLException e) {
             System.err.println("Error al obtener productos bajo stock: " + e.getMessage());
+        }
+        return productos;
+    }
+
+    /**
+     * Obtiene la lista de todos los productos eliminados lógicamente (inactivos).
+     *
+     * @return Lista de objetos Producto inactivos (activo = 0).
+     */
+    public List<Producto> obtenerInactivos() {
+        List<Producto> productos = new ArrayList<>();
+        String sql = "SELECT id, codigo, nombre, precio, stock, stock_minimo, categoria, imagen_ruta, fecha_caducidad, lote, activo FROM productos WHERE activo = 0";
+
+        try (Connection conn = ConexionDB.getInstancia().getConexion();
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                productos.add(mapearProducto(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al obtener productos inactivos: " + e.getMessage());
         }
         return productos;
     }
@@ -237,6 +289,9 @@ public class ProductoDAO {
         p.setStockMinimo(rs.getInt("stock_minimo"));
         p.setCategoria(rs.getString("categoria"));
         p.setImagenRuta(rs.getString("imagen_ruta"));
+        p.setFechaCaducidad(rs.getString("fecha_caducidad"));
+        p.setLote(rs.getString("lote"));
+        p.setActivo(rs.getInt("activo") == 1);
         return p;
     }
 }

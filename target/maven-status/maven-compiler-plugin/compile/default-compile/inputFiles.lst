@@ -6,7 +6,9 @@ C:\Users\igeri\Desktop\SistemaNekoMart\nekomart-sistema-ventas\src\main\java\com
 C:\Users\igeri\Desktop\SistemaNekoMart\nekomart-sistema-ventas\src\main\java\com\nekomart\services\UsuarioService.java
 C:\Users\igeri\Desktop\SistemaNekoMart\nekomart-sistema-ventas\src\main\java\com\nekomart\dao\UsuarioDAO.java
 C:\Users\igeri\Desktop\SistemaNekoMart\nekomart-sistema-ventas\src\main\java\com\nekomart\ui\DashboardFrame.java
+C:\Users\igeri\Desktop\SistemaNekoMart\nekomart-sistema-ventas\src\main\java\com\nekomart\ui\KardexFrame.java
 C:\Users\igeri\Desktop\SistemaNekoMart\nekomart-sistema-ventas\src\main\java\com\nekomart\ui\HistorialVentasFrame.java
+C:\Users\igeri\Desktop\SistemaNekoMart\nekomart-sistema-ventas\src\main\java\com\nekomart\models\Movimiento.java
 C:\Users\igeri\Desktop\SistemaNekoMart\nekomart-sistema-ventas\src\main\java\com\nekomart\utils\SessionManager.java
 C:\Users\igeri\Desktop\SistemaNekoMart\nekomart-sistema-ventas\src\main\java\com\nekomart\dao\ProductoDAO.java
 C:\Users\igeri\Desktop\SistemaNekoMart\nekomart-sistema-ventas\src\main\java\com\nekomart\models\Venta.java
@@ -23,6 +25,9 @@ C:\Users\igeri\Desktop\SistemaNekoMart\nekomart-sistema-ventas\src\main\java\com
 C:\Users\igeri\Desktop\SistemaNekoMart\nekomart-sistema-ventas\src\main\java\com\nekomart\services\ImpresionService.java
 C:\Users\igeri\Desktop\SistemaNekoMart\nekomart-sistema-ventas\src\main\java\com\nekomart\utils\ConfiguracionCorreo.java
 C:\Users\igeri\Desktop\SistemaNekoMart\nekomart-sistema-ventas\src\main\java\com\nekomart\models\DetalleVenta.java
+C:\Users\igeri\Desktop\SistemaNekoMart\nekomart-sistema-ventas\src\main\java\com\nekomart\services\EstadisticasService.java
 C:\Users\igeri\Desktop\SistemaNekoMart\nekomart-sistema-ventas\src\main\java\com\nekomart\dao\ConexionDB.java
+C:\Users\igeri\Desktop\SistemaNekoMart\nekomart-sistema-ventas\src\main\java\com\nekomart\dao\MovimientoDAO.java
+C:\Users\igeri\Desktop\SistemaNekoMart\nekomart-sistema-ventas\src\main\java\com\nekomart\services\ExcelService.java
 C:\Users\igeri\Desktop\SistemaNekoMart\nekomart-sistema-ventas\src\main\java\com\nekomart\services\CorreoService.java
 C:\Users\igeri\Desktop\SistemaNekoMart\nekomart-sistema-ventas\src\main\java\com\nekomart\dao\EstadisticasDAO.java
