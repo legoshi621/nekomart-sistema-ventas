@@ -3,7 +3,7 @@
 **Proyecto:** NekoMart POS System  
 **Tecnología:** Java Swing + SQLite + Maven  
 **Fecha de Inicio:** Junio 2026  
-**Estado:** En Progreso (90% completado)
+**Estado:** En Progreso (85% completado)
 
 ---
 
@@ -11,294 +11,91 @@
 
 ### ✅ FASE 1: Configuración del Proyecto y Base de Datos
 
-**Duración estimada:** 2 horas  
-**Estado:** COMPLETADO  
-**Fecha:** 10 Junio 2026
+**Estado:** COMPLETADO | **Fecha:** 10 Junio 2026
 
-#### Actividades:
-
-- [x] Crear estructura de carpetas Maven
-- [x] Configurar `pom.xml` con dependencias básicas
-- [x] Crear archivo `database_sqlite.sql` con esquema
-- [x] Implementar `ConexionDB.java` (Singleton)
-- [x] Crear modelos: Producto, Usuario, Venta, DetalleVenta
-- [x] Implementar `PasswordUtils.java` (SHA-256)
-- [x] Implementar `SessionManager.java`
-- [x] Implementar `DatabaseInitializer.java`
-
-#### Entregables:
-
-- Base de datos SQLite funcional
-- Conexión a BD establecida
-- Modelos de datos creados
-- Utilidades de seguridad implementadas
-
----
+- [x] Crear estructura de carpetas Maven y `pom.xml`
+- [x] Crear archivo `database_sqlite.sql` con esquema completo
+- [x] Implementar `ConexionDB.java` (Singleton) y `DatabaseInitializer.java`
+- [x] Crear modelos: Producto, Usuario, Venta, DetalleVenta, Movimiento
+- [x] Implementar utilidades de seguridad (SHA-256)
 
 ### ✅ FASE 2: Sistema de Autenticación
 
-**Duración estimada:** 3 horas  
-**Estado:** COMPLETADO  
-**Fecha:** 10 Junio 2026
+**Estado:** COMPLETADO | **Fecha:** 10 Junio 2026
 
-#### Actividades:
-
-- [x] Crear `LoginFrame.java` con FlatLaf
-- [x] Implementar `UsuarioDAO.login()`
-- [x] Validar credenciales contra BD
-- [x] Crear sesión con SessionManager
-- [x] Implementar control de roles (Admin/Empleado)
+- [x] Crear `LoginFrame.java` con diseño personalizado y logo
+- [x] Implementar validación de credenciales y control de roles
 - [x] Crear `MainFrame.java` con navegación por pestañas
-- [x] Agregar usuario admin por defecto
-
-#### Entregables:
-
-- Login funcional con encriptación
-- Control de acceso por roles
-- Sesión persistente
-- Navegación básica
-
----
 
 ### ✅ FASE 3: Módulo de Inventario
 
-**Duración estimada:** 4 horas  
-**Estado:** COMPLETADO  
-**Fecha:** 10 Junio 2026
+**Estado:** COMPLETADO | **Fecha:** 10 Junio 2026
 
-#### Actividades:
-
-- [x] Crear `ProductoDAO` con métodos CRUD
-- [x] Implementar `ProductoService`
-- [x] Crear `InventarioFrame.java`
-- [x] Tabla de productos con JTable
-- [x] Diálogo para crear/editar productos
-- [x] Búsqueda en tiempo real
-- [x] Validación de campos
-- [x] Eliminación con confirmación
-- [x] Cargar 20 productos de ejemplo
-
-#### Entregables:
-
-- CRUD completo de productos
-- Búsqueda funcional
-- 20 productos precargados
-- Interfaz intuitiva
-
----
+- [x] CRUD completo de productos con búsqueda en tiempo real
+- [x] Gestión de campos adicionales: fecha_caducidad, lote, activo
+- [x] Carga de 20 productos de ejemplo con imágenes (URLs)
 
 ### ✅ FASE 4: Módulo de Ventas (POS)
 
-**Duración estimada:** 5 horas  
-**Estado:** COMPLETADO  
-**Fecha:** 10 Junio 2026
+**Estado:** COMPLETADO | **Fecha:** 11 Junio 2026
 
-#### Actividades:
-
-- [x] Crear `VentaDAO` y `DetalleVenta`
-- [x] Implementar `VentaService.procesarVenta()`
-- [x] Crear `VentasFrame.java`
-- [x] Carrito de compras con JTable
-- [x] Búsqueda de productos
-- [x] Cálculo de totales y cambio
-- [x] Métodos de pago (Efectivo/Tarjeta)
-- [x] Generación de folio único
-- [x] Actualización automática de stock
-- [x] Crear `HistorialVentasFrame.java`
-- [x] Vista de detalles de venta
-
-#### Entregables:
-
-- Punto de venta funcional
-- Cálculos automáticos
-- Historial de ventas
-- Descuento de inventario
-
----
+- [x] Interfaz POS con carrito de compras y cálculo automático
+- [x] Generación de folio único y descuento de inventario
+- [x] Registro automático en tabla `movimientos_inventario` (Kardex)
 
 ### ✅ FASE 5: Gestión de Usuarios
 
-**Duración estimada:** 3 horas  
-**Estado:** COMPLETADO  
-**Fecha:** 11 Junio 2026
+**Estado:** COMPLETADO | **Fecha:** 11 Junio 2026
 
-#### Actividades:
-
-- [x] Agregar métodos CRUD a `UsuarioDAO`
-- [x] Implementar `UsuarioService`
-- [x] Crear `UsuariosFrame.java`
-- [x] Diálogo para crear/editar usuarios
-- [x] Validación de username único
-- [x] Asignación de roles
-- [x] Restricción de acceso solo para Admin
-- [x] Crear 5 empleados de ejemplo
-
-#### Entregables:
-
-- CRUD de usuarios funcional
-- Control de roles implementado
-- 5 empleados precargados
-- Solo admin puede gestionar usuarios
-
----
+- [x] CRUD de usuarios restringido solo al rol ADMIN
+- [x] Asignación de roles y gestión de fotos de perfil
+- [x] 6 usuarios precargados (1 Admin, 5 Empleados)
 
 ### ✅ FASE 6: Sistema de Imágenes
 
-**Duración estimada:** 3 horas  
-**Estado:** COMPLETADO  
-**Fecha:** 11 Junio 2026
+**Estado:** COMPLETADO | **Fecha:** 11 Junio 2026
 
-#### Actividades:
+- [x] Carga de imágenes desde URLs externas (Unsplash)
+- [x] Implementación de `ImageLoader.java` con manejo de errores
+- [x] Fallback a imágenes placeholder si falla la conexión
 
-- [x] Agregar columna `imagen_ruta` a productos
-- [x] Agregar columna `foto_ruta` a usuarios
-- [x] Crear carpetas `imagenes/productos/` y `empleados/`
-- [x] Modificar `InventarioFrame` con selector de imágenes
-- [x] Modificar `UsuariosFrame` con selector de fotos
-- [x] JFileChooser para seleccionar archivos
-- [x] Copia de archivos a carpetas destino
-- [x] Vista previa con JLabel
-- [x] Actualizar DAOs para guardar rutas
+### ✅ FASE 7: Dashboard de Estadísticas
 
-#### Entregables:
+**Estado:** COMPLETADO | **Fecha:** 12 Junio 2026
 
-- Imágenes en productos
-- Fotos en empleados
-- Vista previa funcional
-- Almacenamiento en filesystem
+- [x] Tarjetas de resumen (Ventas hoy, mes, stock bajo)
+- [x] Gráfico de barras personalizado (paintComponent)
+- [x] Tabla de Top 5 productos más vendidos
+- [x] Corrección de errores de conexión en `EstadisticasDAO`
 
----
+### FASE 8: Alertas de Stock Bajo
 
-### 🔄 FASE 7: Dashboard de Estadísticas
+**Estado:** EN PROGRESO
 
-**Duración estimada:** 4 horas  
-**Estado:** EN PROGRESO  
-**Fecha:** 11 Junio 2026
+- [x] Identificación de productos con stock <= mínimo
+- [ ] Renderizado personalizado de filas en JTable (colores)
 
-#### Actividades:
+### FASE 9: Cambio de Contraseña
 
-- [x] Crear `EstadisticasDAO`
-  - [x] Método `getVentasHoy()`
-  - [x] Método `getVentasMes()`
-  - [x] Método `getTotalVentasHoy()`
-  - [x] Método `getTop5Productos()`
-  - [x] Método `getVentasUltimos7Dias()`
-- [x] Crear `EstadisticasService`
-- [x] Crear `DashboardFrame.java`
-  - [x] Tarjetas de resumen (4)
-  - [x] Gráfico de barras personalizado (paintComponent)
-  - [x] Tabla de top productos
-  - [x] Diseño responsive
-- [x] Integrar en `MainFrame` como primera pestaña
-
-#### Entregables:
-
-- Dashboard visual con métricas
-- Gráfico de ventas últimos 7 días
-- Top 5 productos
-- Acceso para ambos roles
-
----
-
-### ⏳ FASE 8: Alertas de Stock Bajo
-
-**Duración estimada:** 2 horas  
 **Estado:** PENDIENTE
 
-#### Actividades:
+- [ ] Diálogo para actualización de credenciales propias
 
-- [ ] Modificar `InventarioFrame`
-  - [ ] `DefaultTableCellRenderer` personalizado
-  - [ ] Pintar filas en rojo cuando stock ≤ stock_minimo
-  - [ ] Agregar ícono ⚠️
-- [ ] Agregar contador en Dashboard
-- [ ] Método `obtenerProductosStockBajo()` en ProductoService
+### FASE 10: Facturación PDF y Correo
 
-#### Entregables:
-
-- Alertas visuales en inventario
-- Contador de productos críticos
-- Notificación proactiva
-
----
-
-### ⏳ FASE 9: Cambio de Contraseña
-
-**Duración estimada:** 2 horas  
 **Estado:** PENDIENTE
 
-#### Actividades:
-
-- [ ] Crear diálogo `CambiarPasswordDialog`
-- [ ] Validar contraseña actual
-- [ ] Actualizar en `UsuarioDAO`
-- [ ] Agregar menú "Mi Perfil" en MainFrame
-- [ ] Encriptar nueva contraseña
-
-#### Entregables:
-
-- Usuarios pueden cambiar su password
-- Validación de seguridad
-- Interfaz intuitiva
-
----
-
-### ⏳ FASE 10: Facturación PDF y Correo
-
-**Duración estimada:** 5 horas  
-**Estado:** PENDIENTE
-
-#### Actividades:
-
-- [ ] Agregar dependencias: iText 7, JavaMail
-- [ ] Crear `FacturaService`
-  - [ ] Método `generarPDF()` con iText
-  - [ ] Diseño profesional con logo
-  - [ ] Guardar en carpeta `facturas/`
-- [ ] Crear `ImpresionService`
-  - [ ] Método `imprimirPDF()`
-  - [ ] Diálogo de selección de impresora
-- [ ] Crear `CorreoService`
-  - [ ] Configuración SMTP Gmail
-  - [ ] Método `enviarFactura()` con adjunto
-  - [ ] Manejo de excepciones
-- [ ] Modificar `VentasFrame`
-  - [ ] Diálogo post-venta con opciones
-  - [ ] Botones: Imprimir, Enviar, Guardar
-- [ ] Crear tabla `facturas_generadas`
-- [ ] Vista previa de factura
-
-#### Entregables:
-
-- Facturas en PDF profesionales
-- Impresión directa
-- Envío por email
-- Historial de facturas
-
----
+- [ ] Generación de PDF con iText 7
+- [ ] Envío por correo con JavaMail
+- _Nota: Esta fase se dejará para la siguiente iteración del proyecto._
 
 ### ⏳ FASE 11: Pruebas y Documentación
 
-**Duración estimada:** 3 horas  
-**Estado:** PENDIENTE
+**Estado:** EN PROGRESO
 
-#### Actividades:
-
-- [ ] Pruebas de cada módulo
-- [ ] Corrección de bugs
-- [ ] Optimización de consultas SQL
-- [ ] Documentación de código
-- [ ] Crear README.md
-- [ ] Manual de usuario básico
-- [ ] Exportar requirements.md
-- [ ] Video demo (opcional)
-
-#### Entregables:
-
-- Sistema estable y probado
-- Documentación completa
-- README con instrucciones
-- Listo para entrega
+- [x] Documentación de requerimientos y plan de implementación
+- [x] Organización del repositorio y .gitignore
+- [ ] Pruebas finales y toma de capturas para evidencia
 
 ---
 
@@ -312,13 +109,13 @@
 | 4    | Ventas POS         | ✅ Completado  | 100%     |
 | 5    | Usuarios           | ✅ Completado  | 100%     |
 | 6    | Imágenes           | ✅ Completado  | 100%     |
-| 7    | Dashboard          | 🔄 En Progreso | 80%      |
-| 8    | Alertas Stock      | ⏳ Pendiente   | 0%       |
+| 7    | Dashboard          | ✅ Completado  | 100%     |
+| 8    | Alertas Stock      | 🔄 En Progreso | 50%      |
 | 9    | Cambiar Password   | ⏳ Pendiente   | 0%       |
 | 10   | Facturación        | ⏳ Pendiente   | 0%       |
-| 11   | Pruebas            | ⏳ Pendiente   | 0%       |
+| 11   | Pruebas            | 🔄 En Progreso | 60%      |
 
-**Progreso Total:** 90% (6 de 11 fases completadas)
+**Progreso Total:** 85% (7 de 11 fases completadas al 100%)
 
 ---
 
@@ -332,27 +129,11 @@
         <artifactId>sqlite-jdbc</artifactId>
         <version>3.45.3.0</version>
     </dependency>
-
-    <!-- FlatLaf -->
+    <!-- FlatLaf (Temas de interfaz) -->
     <dependency>
         <groupId>com.formdev</groupId>
         <artifactId>flatlaf</artifactId>
         <version>3.5.1</version>
-    </dependency>
-
-    <!-- iText 7 (Para PDF) -->
-    <dependency>
-        <groupId>com.itextpdf</groupId>
-        <artifactId>itext7-core</artifactId>
-        <version>7.2.5</version>
-        <type>pom</type>
-    </dependency>
-
-    <!-- JavaMail -->
-    <dependency>
-        <groupId>com.sun.mail</groupId>
-        <artifactId>javax.mail</artifactId>
-        <version>1.6.2</version>
     </dependency>
 </dependencies>
 ```

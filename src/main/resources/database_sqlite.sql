@@ -56,3 +56,20 @@ CREATE TABLE IF NOT EXISTS detalle_venta (
 INSERT INTO usuarios (username, password_hash, rol, nombre_completo)
 SELECT 'admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'ADMIN', 'Administrador General'
 WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE username = 'admin');
+
+-- Insertar productos de prueba para validación de URLs y placeholders
+INSERT INTO productos (codigo, nombre, precio, stock, categoria, imagen_ruta)
+SELECT 'PROD-001', 'Smartphone Galaxia', 599.99, 15, 'Electrónica', 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&q=80'
+WHERE NOT EXISTS (SELECT 1 FROM productos WHERE codigo = 'PROD-001');
+
+INSERT INTO productos (codigo, nombre, precio, stock, categoria, imagen_ruta)
+SELECT 'PROD-002', 'Lámpara de Escritorio', 25.50, 40, 'Hogar', 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=300&q=80'
+WHERE NOT EXISTS (SELECT 1 FROM productos WHERE codigo = 'PROD-002');
+
+INSERT INTO productos (codigo, nombre, precio, stock, categoria, imagen_ruta)
+SELECT 'PROD-003', 'Silla Gamer', 180.00, 5, 'Muebles', 'https://via.placeholder.com/300/4A90D9/FFFFFF?text=Silla+Gamer'
+WHERE NOT EXISTS (SELECT 1 FROM productos WHERE codigo = 'PROD-003');
+
+INSERT INTO productos (codigo, nombre, precio, stock, categoria, imagen_ruta)
+SELECT 'PROD-004', 'Producto Roto', 10.00, 100, 'Pruebas', 'https://this-url-does-not-exist.com/img.png'
+WHERE NOT EXISTS (SELECT 1 FROM productos WHERE codigo = 'PROD-004');

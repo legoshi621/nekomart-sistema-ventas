@@ -338,18 +338,8 @@ public class InventarioFrame extends JPanel {
      * @param ruta Ruta de la imagen
      */
     private void mostrarVistaPrevia(JLabel lbl, String ruta) {
-        if (ruta != null && !ruta.isEmpty()) {
-            File f = new File(ruta);
-            if (f.exists()) {
-                ImageIcon icon = new ImageIcon(f.getAbsolutePath());
-                Image scaled = icon.getImage().getScaledInstance(150, 150, Image.SCALE_SMOOTH);
-                lbl.setIcon(new ImageIcon(scaled));
-                lbl.setText("");
-                return;
-            }
-        }
-        lbl.setIcon(null);
-        lbl.setText("<html><center>Sin Vista<br>Previa</center></html>");
+        lbl.setText("");
+        com.nekomart.utils.ImageLoader.cargarImagenAsync(ruta, 150, 150, lbl);
     }
 
     /**

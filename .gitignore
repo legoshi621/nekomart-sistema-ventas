@@ -1,34 +1,57 @@
-# Base de datos
+# ==========================================
+# BASE DE DATOS (NO subir a Git)
+# ==========================================
 nekomart.db
 *.db
+*.sqlite
+*.sqbro
 
-# Logs de Java
+# ==========================================
+# LOGS DE JAVA (errores de memoria)
+# ==========================================
 hs_err_pid*.log
 replay_pid*.log
+*.log
 
-# Archivos compilados de Maven
+# ==========================================
+# ARCHIVOS COMPILADOS DE MAVEN
+# ==========================================
 target/
 *.class
 *.jar
+*.war
+*.ear
 
-# Archivos de IDE
+# ==========================================
+# ARCHIVOS DE IDE
+# ==========================================
 .idea/
 *.iml
 .vscode/
 .settings/
 .project
 .classpath
-
-# Archivos temporales
-*.tmp
-*.bak
 *.swp
+*.swo
 *~
 
-# Carpetas generadas
-imagenes/
-facturas/
-
-# Archivos del sistema
+# ==========================================
+# ARCHIVOS TEMPORALES DEL SISTEMA
+# ==========================================
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# ==========================================
+# CARPETAS GENERADAS
+# ==========================================
+imagenes/
+facturas/
+reportes/
+
+# ==========================================
+# ARCHIVOS DE CONFIGURACIÓN LOCAL
+# ==========================================
+*.bak
+*.tmp
+*.temp

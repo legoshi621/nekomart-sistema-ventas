@@ -12,22 +12,22 @@ import java.awt.event.*;
 import java.awt.geom.Path2D;
 
 /**
- * Pantalla principal del sistema NekoMart con diseño pastel moderno.
- * Barra superior con logo, información de usuario, botón de tema claro/oscuro y botones de contraseña/cerrar sesión.
- * Navegación por pestañas con colores adaptables lavanda (activa) y blanco/gris (inactiva).
+ * Pantalla principal del sistema NekoMart con diseño POS profesional.
+ * Barra superior azul (#4A90D9) con texto blanco, información de usuario,
+ * botón de tema claro/oscuro y botones de contraseña/cerrar sesión.
+ * Pestañas con fondo #F5F7FA, activa #FFFFFF con borde inferior azul #4A90D9.
  * Todo el código está comentado en español.
  */
 public class MainFrame extends JFrame {
 
-    // ── Colores de la paleta pastel ──────────────────────────────────────
-    private static final Color LAVANDA = new Color(184, 169, 232);
-    private static final Color LAVANDA_CLARO = new Color(212, 196, 240);
-    private static final Color CORAL = new Color(255, 139, 148);
-    private static final Color CORAL_HOVER = new Color(255, 107, 116);
-    private static final Color FONDO = new Color(250, 250, 250);
-    private static final Color TEXTO_OSCURO = new Color(45, 55, 72);
-    private static final Color TEXTO_GRIS = new Color(113, 128, 150);
-    private static final Color BORDE = new Color(226, 232, 240);
+    // ── Colores de la paleta POS ─────────────────────────────────────────
+    private static final Color AZUL_POS = new Color(0x4A, 0x90, 0xD9);        // #4A90D9 - Header/Azul principal
+    private static final Color VERDE_PRINCIPAL = new Color(0x27, 0xAE, 0x60); // #27AE60 - Botón principal
+    private static final Color ROJO_CANCELAR = new Color(0xE7, 0x4C, 0x3C);   // #E74C3C - Botón cancelar
+    private static final Color FONDO = new Color(0xF5, 0xF7, 0xFA);           // #F5F7FA - Fondo general
+    private static final Color TEXTO_OSCURO = new Color(0x2C, 0x3E, 0x50);    // #2C3E50 - Texto principal
+    private static final Color TEXTO_GRIS = new Color(0x7F, 0x8C, 0x8D);      // #7F8C8D - Texto secundario
+    private static final Color BORDE = new Color(0xE0, 0xE6, 0xED);           // #E0E6ED - Bordes
 
     // ── Componentes de la interfaz ───────────────────────────────────────
     private JButton btnCerrarSesion;
@@ -62,18 +62,18 @@ public class MainFrame extends JFrame {
         Usuario usuario = SessionManager.getInstancia().getUsuarioActual();
 
         // ══════════════════════════════════════════════════════════════════
-        // 1. BARRA SUPERIOR — Fondo adaptable, altura 60px, borde inferior
+        // 1. BARRA SUPERIOR — Fondo azul POS #4A90D9, texto blanco, altura 60px
         // ══════════════════════════════════════════════════════════════════
         panelSuperior = new JPanel(new GridBagLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                // Dibujar borde inferior sutil con color adaptado
+                // Dibujar borde inferior sutil
                 g.setColor(Main.isDarkMode ? new Color(60, 60, 60) : BORDE);
                 g.drawLine(0, getHeight() - 1, getWidth(), getHeight() - 1);
             }
         };
-        panelSuperior.setBackground(Color.WHITE);
+        panelSuperior.setBackground(AZUL_POS); // Fondo azul POS
         panelSuperior.setPreferredSize(new Dimension(0, 60));
         panelSuperior.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 20));
 
@@ -98,10 +98,10 @@ public class MainFrame extends JFrame {
         gbc.insets = new Insets(0, 0, 0, 8);
         panelSuperior.add(panelLogoIcon, gbc);
 
-        // ── Nombre de la aplicación ──────────────────────────────────────
+        // ── Nombre de la aplicación (blanco sobre fondo azul) ────────────
         lblAppName = new JLabel("NekoMart");
         lblAppName.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        lblAppName.setForeground(new Color(120, 100, 180)); // Lavanda oscuro
+        lblAppName.setForeground(Color.WHITE); // Texto blanco sobre azul
         gbc.gridx = 1;
         gbc.insets = new Insets(0, 0, 0, 0);
         panelSuperior.add(lblAppName, gbc);
@@ -111,17 +111,17 @@ public class MainFrame extends JFrame {
         gbc.weightx = 1.0;
         panelSuperior.add(Box.createGlue(), gbc);
 
-        // ── Información del usuario ──────────────────────────────────────
+        // ── Información del usuario (blanco sobre fondo azul) ────────────
         gbc.gridx = 3;
         gbc.weightx = 0.0;
         gbc.insets = new Insets(0, 0, 0, 15);
         lblUserInfo = new JLabel("👤 " + (usuario != null ? usuario.getNombreCompleto() : "Invitado") + 
                 " (" + (usuario != null ? usuario.getRol() : "Ninguno") + ")");
         lblUserInfo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        lblUserInfo.setForeground(TEXTO_OSCURO);
+        lblUserInfo.setForeground(Color.WHITE); // Texto blanco sobre azul
         panelSuperior.add(lblUserInfo, gbc);
 
-        // ── Botón "🌓" para alternar tema ─────────────────────────────
+        // ── Botón "🌓" para alternar tema (blanco sobre azul) ────────────
         btnTema = new JButton(Main.isDarkMode ? "☀️" : "🌙") {
             private boolean hover = false;
             {
@@ -142,16 +142,11 @@ public class MainFrame extends JFrame {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                Color accentColor = Main.isDarkMode ? new Color(255, 183, 77) : LAVANDA;
                 if (hover) {
-                    g2.setColor(accentColor);
+                    g2.setColor(new Color(255, 255, 255, 50)); // Hover blanco semi-transparente
                     g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
-                    g2.setColor(Color.WHITE);
-                } else {
-                    g2.setColor(accentColor);
-                    g2.setStroke(new BasicStroke(1.5f));
-                    g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 16, 16);
                 }
+                g2.setColor(Color.WHITE);
                 g2.setFont(getFont());
                 FontMetrics fm = g2.getFontMetrics();
                 int x = (getWidth() - fm.stringWidth(getText())) / 2;
@@ -171,7 +166,7 @@ public class MainFrame extends JFrame {
             reaplicarTemaMainFrame();
         });
 
-        // ── Botón "Cambiar Contraseña" con estilo lavanda outline ─────────
+        // ── Botón "Cambiar Contraseña" (blanco outline sobre azul) ───────
         btnCambiarPassword = new JButton("🔒 Cambiar Contraseña") {
             private boolean hover = false;
             {
@@ -193,14 +188,15 @@ public class MainFrame extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 if (hover) {
-                    g2.setColor(LAVANDA);
+                    g2.setColor(new Color(255, 255, 255, 40)); // Hover semi-transparente
                     g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
-                    g2.setColor(Color.WHITE);
-                } else {
-                    g2.setColor(LAVANDA);
-                    g2.setStroke(new BasicStroke(1.5f));
-                    g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 16, 16);
                 }
+                // Borde blanco outline
+                g2.setColor(new Color(255, 255, 255, 180));
+                g2.setStroke(new BasicStroke(1.5f));
+                g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 16, 16);
+                // Texto blanco
+                g2.setColor(Color.WHITE);
                 g2.setFont(getFont());
                 FontMetrics fm = g2.getFontMetrics();
                 int x = (getWidth() - fm.stringWidth(getText())) / 2;
@@ -210,7 +206,7 @@ public class MainFrame extends JFrame {
             }
         };
         btnCambiarPassword.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnCambiarPassword.setForeground(LAVANDA);
+        btnCambiarPassword.setForeground(Color.WHITE);
         btnCambiarPassword.setContentAreaFilled(false);
         btnCambiarPassword.setBorderPainted(false);
         btnCambiarPassword.setFocusPainted(false);
@@ -218,7 +214,7 @@ public class MainFrame extends JFrame {
         btnCambiarPassword.setPreferredSize(new Dimension(160, 35));
         btnCambiarPassword.addActionListener(e -> mostrarDialogoCambiarPassword(usuario));
 
-        // ── Botón "Cerrar Sesión" con estilo coral outline ───────────────
+        // ── Botón "Cerrar Sesión" (rojo outline sobre azul) ──────────────
         btnCerrarSesion = new JButton("Cerrar Sesión") {
             private boolean hover = false;
             {
@@ -240,13 +236,15 @@ public class MainFrame extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 if (hover) {
-                    g2.setColor(CORAL);
+                    g2.setColor(ROJO_CANCELAR);
                     g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
                     g2.setColor(Color.WHITE);
                 } else {
-                    g2.setColor(CORAL);
+                    // Borde blanco outline
+                    g2.setColor(new Color(255, 255, 255, 180));
                     g2.setStroke(new BasicStroke(1.5f));
                     g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 16, 16);
+                    g2.setColor(Color.WHITE);
                 }
                 g2.setFont(getFont());
                 FontMetrics fm = g2.getFontMetrics();
@@ -257,7 +255,7 @@ public class MainFrame extends JFrame {
             }
         };
         btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnCerrarSesion.setForeground(CORAL);
+        btnCerrarSesion.setForeground(Color.WHITE);
         btnCerrarSesion.setContentAreaFilled(false);
         btnCerrarSesion.setBorderPainted(false);
         btnCerrarSesion.setFocusPainted(false);
@@ -309,14 +307,15 @@ public class MainFrame extends JFrame {
         panelInicio.add(dashboard, BorderLayout.CENTER);
 
         // ══════════════════════════════════════════════════════════════════
-        // 4. TABBEDPANE — Pestañas con colores personalizados
+        // 4. TABBEDPANE — Pestañas con colores POS personalizados
+        // Fondo #F5F7FA, activa #FFFFFF con borde inferior azul #4A90D9
         // ══════════════════════════════════════════════════════════════════
         tabbedPane = new JTabbedPane();
         tabbedPane.setBackground(FONDO);
         tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 13));
 
-        // Aplicar UI personalizada para pestañas lavanda/blanco/gris oscuro
-        tabbedPane.setUI(new PastelTabbedPaneUI());
+        // Aplicar UI personalizada para pestañas POS
+        tabbedPane.setUI(new POSTabbedPaneUI());
 
         String rol = (usuario != null) ? usuario.getRol().toUpperCase() : "EMPLEADO";
 
@@ -350,7 +349,7 @@ public class MainFrame extends JFrame {
     }
 
     /**
-     * Re-aplica colores a los componentes de MainFrame que anulan el L&F por defecto.
+     * Re-aplica colores POS a los componentes de MainFrame.
      */
     public void reaplicarTemaMainFrame() {
         Color fondo = Main.isDarkMode ? new Color(0x1E, 0x1E, 0x1E) : FONDO;
@@ -359,13 +358,14 @@ public class MainFrame extends JFrame {
         Color textGris = Main.isDarkMode ? new Color(170, 170, 170) : TEXTO_GRIS;
 
         if (panelSuperior != null) {
-            panelSuperior.setBackground(card);
+            // Barra superior: azul POS en claro, oscuro en dark
+            panelSuperior.setBackground(Main.isDarkMode ? new Color(0x2D, 0x2D, 0x2D) : AZUL_POS);
         }
         if (lblAppName != null) {
-            lblAppName.setForeground(Main.isDarkMode ? new Color(184, 169, 232) : new Color(120, 100, 180));
+            lblAppName.setForeground(Color.WHITE); // Siempre blanco sobre el header
         }
         if (lblUserInfo != null) {
-            lblUserInfo.setForeground(textClaro);
+            lblUserInfo.setForeground(Color.WHITE); // Siempre blanco sobre el header
         }
         if (panelInicio != null) {
             panelInicio.setBackground(fondo);
@@ -389,6 +389,7 @@ public class MainFrame extends JFrame {
 
     /**
      * Dibuja un gatito pequeño para el logo de la barra superior.
+     * Usa colores blancos sobre fondo azul POS.
      *
      * @param g2   Contexto gráfico 2D
      * @param cx   Centro X
@@ -396,8 +397,8 @@ public class MainFrame extends JFrame {
      * @param size Tamaño base
      */
     private void dibujarGatitoPequeno(Graphics2D g2, int cx, int cy, int size) {
-        // Cara del gato (círculo)
-        g2.setColor(LAVANDA);
+        // Cara del gato (círculo) — blanco sobre azul
+        g2.setColor(Color.WHITE);
         g2.fillOval(cx - size, cy - size + 3, size * 2, size * 2);
 
         // Oreja izquierda
@@ -416,16 +417,13 @@ public class MainFrame extends JFrame {
         orejaDer.closePath();
         g2.fill(orejaDer);
 
-        // Ojos
-        g2.setColor(Color.WHITE);
+        // Ojos — azul POS sobre blanco
+        g2.setColor(AZUL_POS);
         g2.fillOval(cx - 7, cy - 3, 6, 6);
         g2.fillOval(cx + 1, cy - 3, 6, 6);
-        g2.setColor(TEXTO_OSCURO);
-        g2.fillOval(cx - 5, cy - 1, 3, 3);
-        g2.fillOval(cx + 3, cy - 1, 3, 3);
 
         // Nariz
-        g2.setColor(CORAL);
+        g2.setColor(new Color(0x27, 0xAE, 0x60)); // Verde principal
         g2.fillOval(cx - 2, cy + 3, 4, 3);
     }
 
@@ -538,15 +536,16 @@ public class MainFrame extends JFrame {
     }
 
     // ══════════════════════════════════════════════════════════════════════
-    // UI PERSONALIZADA PARA EL TABBEDPANE CON COLORES PASTEL ADAPTABLES
+    // UI PERSONALIZADA PARA EL TABBEDPANE CON COLORES POS
+    // Pestañas: fondo #F5F7FA, activa #FFFFFF con borde inferior azul #4A90D9
     // ══════════════════════════════════════════════════════════════════════
 
     /**
-     * UI personalizada para JTabbedPane que pinta pestañas con colores pastel adaptables:
-     * - Pestaña activa: fondo lavanda (#B8A9E8), texto blanco
-     * - Pestaña inactiva: fondo blanco (claro) / #2D2D2D (oscuro), texto gris
+     * UI personalizada para JTabbedPane que pinta pestañas con colores POS:
+     * - Pestaña activa: fondo blanco (#FFFFFF), texto #2C3E50, borde inferior azul #4A90D9
+     * - Pestaña inactiva: fondo #F5F7FA (claro) / #2D2D2D (oscuro), texto gris
      */
-    private class PastelTabbedPaneUI extends BasicTabbedPaneUI {
+    private class POSTabbedPaneUI extends BasicTabbedPaneUI {
 
         @Override
         protected void installDefaults() {
@@ -561,7 +560,13 @@ public class MainFrame extends JFrame {
         @Override
         protected void paintTabBorder(Graphics g, int tabPlacement, int tabIndex,
                                       int x, int y, int w, int h, boolean isSelected) {
-            // No pintar borde por defecto (usamos paintTabBackground)
+            if (isSelected) {
+                // Borde inferior azul POS para la pestaña activa (3px de grosor)
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setColor(AZUL_POS);
+                g2.fillRect(x + 4, y + h - 3, w - 8, 3);
+                g2.dispose();
+            }
         }
 
         @Override
@@ -571,12 +576,12 @@ public class MainFrame extends JFrame {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
             if (isSelected) {
-                // Pestaña activa: fondo lavanda con bordes redondeados arriba
-                g2.setColor(LAVANDA);
+                // Pestaña activa: fondo blanco con bordes redondeados arriba
+                g2.setColor(Main.isDarkMode ? new Color(0x2D, 0x2D, 0x2D) : Color.WHITE);
                 g2.fillRoundRect(x + 2, y + 2, w - 4, h, 12, 12);
             } else {
-                // Pestaña inactiva: fondo adaptado al tema actual
-                g2.setColor(Main.isDarkMode ? new Color(0x2D, 0x2D, 0x2D) : Color.WHITE);
+                // Pestaña inactiva: fondo #F5F7FA / oscuro
+                g2.setColor(Main.isDarkMode ? new Color(0x2D, 0x2D, 0x2D) : FONDO);
                 g2.fillRoundRect(x + 2, y + 2, w - 4, h, 12, 12);
             }
             g2.dispose();
@@ -589,9 +594,10 @@ public class MainFrame extends JFrame {
             g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
             if (isSelected) {
-                g2.setColor(Color.WHITE); // Texto blanco en pestaña activa
+                // Texto oscuro #2C3E50 en pestaña activa
+                g2.setColor(Main.isDarkMode ? Color.WHITE : TEXTO_OSCURO);
             } else {
-                // Texto gris en pestaña inactiva adaptable
+                // Texto gris #7F8C8D en pestaña inactiva
                 g2.setColor(Main.isDarkMode ? new Color(170, 170, 170) : TEXTO_GRIS);
             }
 
