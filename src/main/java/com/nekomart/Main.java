@@ -1,36 +1,31 @@
 package com.nekomart;
 
+import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.nekomart.ui.LoginFrame;
 
 import javax.swing.*;
+import java.awt.*;
 
 /**
- * 
  * Clase principal (punto de entrada) de la aplicación NekoMart.
- * Encargada de inicializar el tema visual y lanzar la primera pantalla.
+ * Encargada de inicializar el tema visual con soporte para modo claro/oscuro
+ * y lanzar la primera pantalla (Login).
  * Todo el código está comentado en español.
  */
 public class Main {
 
+    // Variable global para controlar si el modo oscuro está activo
+    public static boolean isDarkMode = false;
+
     /**
      * Método principal que se ejecuta al lanzar el sistema.
-     * 
+     *
      * @param args Argumentos de línea de comandos (no utilizados).
      */
-
     public static void main(String[] args) {
-
-        /*
-         * Configurar FlatLaf como Look & Feel antes de instanciar cualquier ventana.
-         * Se utiliza FlatLightLaf para un diseño claro, moderno y consistente.
-         */
-        try {
-            UIManager.setLookAndFeel(new FlatLightLaf());
-        } catch (Exception ex) {
-            System.err.println("No se pudo establecer el Look and Feel de FlatLaf:");
-            ex.printStackTrace();
-        }
+        // Inicializar el tema claro por defecto al arrancar
+        aplicarTemaClaro();
 
         /*
          * Usar SwingUtilities.invokeLater para asegurar que la creación y
@@ -45,5 +40,80 @@ public class Main {
                 loginFrame.setVisible(true);
             }
         });
+    }
+
+    /**
+     * Configura y aplica el Tema Oscuro (FlatDarkLaf) con colores personalizados.
+     */
+    public static void aplicarTemaOscuro() {
+        try {
+            FlatDarkLaf.setup();
+
+            // Configuración de colores personalizados de la paleta oscura
+            UIManager.put("Panel.background", new Color(0x1E, 0x1E, 0x1E)); // Fondo #1E1E1E
+            UIManager.put("TableHeader.background", new Color(0x2D, 0x2D, 0x2D)); // Tarjetas/Cabecera #2D2D2D
+            UIManager.put("TableHeader.foreground", Color.WHITE); // Texto blanco
+            UIManager.put("Table.background", new Color(0x2D, 0x2D, 0x2D)); // Fondo tabla oscuro
+            UIManager.put("Table.foreground", Color.WHITE); // Texto blanco
+            UIManager.put("Label.foreground", Color.WHITE); // Texto etiquetas blanco
+            
+            // Botones coral #FF8B94 con texto blanco
+            UIManager.put("Button.background", new Color(255, 139, 148));
+            UIManager.put("Button.foreground", Color.WHITE);
+            UIManager.put("Button.arc", 8);
+            
+            UIManager.put("Component.arc", 8);
+            UIManager.put("TextField.arc", 8);
+            UIManager.put("Component.focusWidth", 2);
+            UIManager.put("Component.focusColor", new Color(184, 169, 232)); // Focus lavanda suave
+        } catch (Exception ex) {
+            System.err.println("No se pudo establecer FlatDarkLaf: " + ex.getMessage());
+        }
+    }
+
+    /**
+     * Configura y aplica el Tema Claro (FlatLightLaf) con colores personalizados.
+     */
+    public static void aplicarTemaClaro() {
+        try {
+            FlatLightLaf.setup();
+
+            // Configuración de colores personalizados de la paleta clara
+            UIManager.put("Panel.background", new Color(0xFA, 0xFA, 0xFA)); // Fondo #FAFAFA
+            UIManager.put("TableHeader.background", new Color(184, 169, 232)); // Cabecera lavanda
+            UIManager.put("TableHeader.foreground", Color.WHITE);
+            UIManager.put("Table.background", Color.WHITE); // Fondo tabla blanco
+            UIManager.put("Table.foreground", new Color(45, 55, 72)); // Texto #2D3748
+            UIManager.put("Label.foreground", new Color(45, 55, 72)); // Texto etiquetas
+            
+            // Botones coral #FF8B94 con texto blanco
+            UIManager.put("Button.background", new Color(255, 139, 148));
+            UIManager.put("Button.foreground", Color.WHITE);
+            UIManager.put("Button.arc", 8);
+            
+            UIManager.put("Component.arc", 8);
+            UIManager.put("TextField.arc", 8);
+            UIManager.put("Component.focusWidth", 2);
+            UIManager.put("Component.focusColor", new Color(184, 169, 232)); // Focus lavanda suave
+        } catch (Exception ex) {
+            System.err.println("No se pudo establecer FlatLightLaf: " + ex.getMessage());
+        }
+    }
+
+    /**
+     * Alterna entre el tema claro y el oscuro y refresca todas las ventanas abiertas.
+     */
+    public static void cambiarTema() {
+        isDarkMode = !isDarkMode;
+        if (isDarkMode) {
+            aplicarTemaOscuro();
+        } else {
+            aplicarTemaClaro();
+        }
+
+        // Actualizar la apariencia de todos los componentes en todas las ventanas abiertas
+        for (Window window : Window.getWindows()) {
+            SwingUtilities.updateComponentTreeUI(window);
+        }
     }
 }

@@ -1,14 +1,19 @@
 package com.nekomart.ui;
 
-import com.nekomart.dao.UsuarioDAO;
+import com.nekomart.services.UsuarioService;
 import com.nekomart.models.Usuario;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Ellipse2D;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,74 +23,172 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 /**
- * Panel de gestión de usuarios (solo accesible para ADMIN).
- * Permite crear, editar y eliminar usuarios del sistema,
- * incluyendo subida y visualización de foto de perfil.
+ * Panel de gestión de usuarios con diseño pastel moderno.
+ * Tabla con fotos de perfil circulares, badges de rol con colores
+ * (ADMIN=lavanda, EMPLEADO=menta), y estilo visual consistente.
  * Todo el código está comentado en español.
  */
 public class UsuariosFrame extends JPanel {
 
-    private UsuarioDAO usuarioDAO;
+    // ── Colores de la paleta pastel ──────────────────────────────────────
+    private static final Color LAVANDA = new Color(184, 169, 232);
+    private static final Color LAVANDA_CLARO = new Color(212, 196, 240);
+    private static final Color MENTA = new Color(168, 230, 207);
+    private static final Color CORAL = new Color(255, 139, 148);
+    private static final Color FONDO = new Color(250, 250, 250);
+    private static final Color TEXTO_OSCURO = new Color(45, 55, 72);
+    private static final Color TEXTO_GRIS = new Color(113, 128, 150);
+    private static final Color BORDE = new Color(226, 232, 240);
+    private static final Color FILA_ALTERNA = new Color(247, 250, 252);
+    private static final Color HOVER_LAVANDA = new Color(240, 235, 255);
+    private static final Color VERDE_OSCURO = new Color(39, 103, 73);
+
+    // ── DAO y componentes de la tabla ─────────────────────────────────────
+    private UsuarioService usuarioService;
     private JTable tablaUsuarios;
     private DefaultTableModel modeloTabla;
 
-    // Columnas de la tabla
-    private final String[] COLUMNAS = { "ID", "Username", "Nombre Completo", "Rol", "Foto" };
+    // Columnas de la tabla (Foto, Username, Nombre Completo, Rol, ID-oculto, FotoRuta-oculto)
+    private final String[] COLUMNAS = {"Foto", "Username", "Nombre Completo", "Rol", "ID", "FotoRuta"};
 
     public UsuariosFrame() {
-        usuarioDAO = new UsuarioDAO();
+        usuarioService = new UsuarioService();
         setLayout(new BorderLayout(10, 10));
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        setBackground(FONDO);
 
         initComponents();
         cargarUsuarios();
     }
 
     /**
-     * Inicializa los componentes visuales del panel.
+     * Inicializa los componentes visuales del panel de usuarios.
      */
     private void initComponents() {
-        // Panel superior con botones de acción
-        JPanel panelSuperior = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        // ══════════════════════════════════════════════════════════════════
+        // PANEL SUPERIOR — Botones de acción
+        // ══════════════════════════════════════════════════════════════════
+        JPanel panelSuperior = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
+        panelSuperior.setOpaque(false);
 
-        JButton btnNuevo = new JButton("👤 Nuevo Usuario");
-        JButton btnEliminar = new JButton("🗑 Eliminar");
-        JButton btnRefrescar = new JButton("🔄 Refrescar");
-
-        btnNuevo.putClientProperty("JButton.buttonType", "default");
+        JButton btnNuevo = crearBotonPastel("👤 Nuevo Usuario", CORAL, Color.WHITE);
         btnNuevo.setToolTipText("Crear un nuevo usuario");
+
+        JButton btnEditar = crearBotonPastel("✏️ Editar", LAVANDA, Color.WHITE);
+        btnEditar.setToolTipText("Editar el usuario seleccionado");
+
+        JButton btnEliminar = crearBotonPastel("🗑️ Eliminar", new Color(252, 129, 129), Color.WHITE);
         btnEliminar.setToolTipText("Eliminar el usuario seleccionado");
+
+        JButton btnRefrescar = crearBotonPastel("🔄 Refrescar", LAVANDA_CLARO, TEXTO_OSCURO);
         btnRefrescar.setToolTipText("Recargar la lista de usuarios");
 
         panelSuperior.add(btnNuevo);
+        panelSuperior.add(btnEditar);
         panelSuperior.add(btnEliminar);
         panelSuperior.add(btnRefrescar);
 
-        // Tabla de usuarios — no editable directamente
+        // ══════════════════════════════════════════════════════════════════
+        // TABLA DE USUARIOS — Con foto circular y badge de rol
+        // ══════════════════════════════════════════════════════════════════
         modeloTabla = new DefaultTableModel(COLUMNAS, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
+            }
+
+            @Override
+            public Class<?> getColumnClass(int column) {
+                if (column == 0) return ImageIcon.class; // Columna foto
+                return String.class;
             }
         };
 
         tablaUsuarios = new JTable(modeloTabla);
         tablaUsuarios.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tablaUsuarios.setAutoCreateRowSorter(true);
-        tablaUsuarios.setRowHeight(28);
+        tablaUsuarios.setRowHeight(55); // Altura para acomodar fotos circulares
+        tablaUsuarios.setShowGrid(false);
+        tablaUsuarios.setIntercellSpacing(new Dimension(0, 0));
+        tablaUsuarios.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tablaUsuarios.setForeground(TEXTO_OSCURO);
+        tablaUsuarios.setSelectionBackground(HOVER_LAVANDA);
+        tablaUsuarios.setSelectionForeground(TEXTO_OSCURO);
 
-        // Ocultar columna ID y Foto (usadas internamente)
-        tablaUsuarios.getColumnModel().getColumn(0).setMinWidth(0);
-        tablaUsuarios.getColumnModel().getColumn(0).setMaxWidth(0);
-        tablaUsuarios.getColumnModel().getColumn(0).setWidth(0);
+        // Estilo del header (fondo lavanda, texto blanco)
+        JTableHeader header = tablaUsuarios.getTableHeader();
+        header.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        header.setBackground(LAVANDA);
+        header.setForeground(Color.WHITE);
+        header.setPreferredSize(new Dimension(0, 40));
+        header.setOpaque(true);
+        header.setBorder(BorderFactory.createEmptyBorder());
+
+        // ── Configurar columnas ──────────────────────────────────────────
+
+        // Columna 0: Foto (50px de ancho)
+        tablaUsuarios.getColumnModel().getColumn(0).setPreferredWidth(60);
+        tablaUsuarios.getColumnModel().getColumn(0).setMaxWidth(70);
+        tablaUsuarios.getColumnModel().getColumn(0).setCellRenderer(new FotoCellRenderer());
+
+        // Columnas 1 y 2: Username y Nombre (renderer con filas alternadas)
+        DefaultTableCellRenderer textRenderer = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                                                           boolean isSelected, boolean hasFocus,
+                                                           int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                if (isSelected) {
+                    c.setBackground(HOVER_LAVANDA);
+                } else {
+                    c.setBackground(row % 2 == 0 ? Color.WHITE : FILA_ALTERNA);
+                }
+                c.setForeground(TEXTO_OSCURO);
+                setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+                return c;
+            }
+        };
+        tablaUsuarios.getColumnModel().getColumn(1).setCellRenderer(textRenderer);
+        tablaUsuarios.getColumnModel().getColumn(2).setCellRenderer(textRenderer);
+
+        // Columna 3: Rol (con badge de color)
+        tablaUsuarios.getColumnModel().getColumn(3).setCellRenderer(new RolBadgeRenderer());
+
+        // Columnas 4 y 5: ID y FotoRuta (ocultas, uso interno)
         tablaUsuarios.getColumnModel().getColumn(4).setMinWidth(0);
         tablaUsuarios.getColumnModel().getColumn(4).setMaxWidth(0);
         tablaUsuarios.getColumnModel().getColumn(4).setWidth(0);
+        tablaUsuarios.getColumnModel().getColumn(5).setMinWidth(0);
+        tablaUsuarios.getColumnModel().getColumn(5).setMaxWidth(0);
+        tablaUsuarios.getColumnModel().getColumn(5).setWidth(0);
+
+        // Panel contenedor con bordes redondeados
+        JPanel panelTabla = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(Color.WHITE);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                g2.setColor(BORDE);
+                g2.setStroke(new BasicStroke(1));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
+                g2.dispose();
+            }
+        };
+        panelTabla.setOpaque(false);
+        panelTabla.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
 
         JScrollPane scrollPane = new JScrollPane(tablaUsuarios);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getViewport().setBackground(Color.WHITE);
+        panelTabla.add(scrollPane, BorderLayout.CENTER);
 
-        // Eventos de botones
+        // ══════════════════════════════════════════════════════════════════
+        // EVENTOS
+        // ══════════════════════════════════════════════════════════════════
         btnNuevo.addActionListener(e -> abrirDialogoUsuario(null));
+        btnEditar.addActionListener(e -> editarUsuarioSeleccionado());
         btnEliminar.addActionListener(e -> eliminarUsuarioSeleccionado());
         btnRefrescar.addActionListener(e -> cargarUsuarios());
 
@@ -100,7 +203,22 @@ public class UsuariosFrame extends JPanel {
         });
 
         add(panelSuperior, BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER);
+        add(panelTabla, BorderLayout.CENTER);
+    }
+
+    /**
+     * Crea un botón estilizado con colores pastel.
+     */
+    private JButton crearBotonPastel(String texto, Color bgColor, Color fgColor) {
+        JButton btn = new JButton(texto);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btn.setBackground(bgColor);
+        btn.setForeground(fgColor);
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.putClientProperty("JButton.buttonType", "roundRect");
+        return btn;
     }
 
     /**
@@ -108,95 +226,99 @@ public class UsuariosFrame extends JPanel {
      */
     private void cargarUsuarios() {
         modeloTabla.setRowCount(0);
-        List<Usuario> usuarios = usuarioDAO.listarTodos();
+        List<Usuario> usuarios = usuarioService.obtenerTodos();
 
         for (Usuario u : usuarios) {
             modeloTabla.addRow(new Object[]{
-                    u.getId(),
-                    u.getUsername(),
-                    u.getNombreCompleto(),
-                    u.getRol(),
-                    u.getFotoRuta()
+                    u.getFotoRuta(),         // Columna 0: ruta de foto (se renderiza como imagen circular)
+                    u.getUsername(),          // Columna 1
+                    u.getNombreCompleto(),   // Columna 2
+                    u.getRol(),              // Columna 3
+                    u.getId(),               // Columna 4 (oculta)
+                    u.getFotoRuta()          // Columna 5 (oculta, respaldo)
             });
         }
     }
 
     /**
-     * Abre un diálogo dual-columna para crear o editar un usuario.
-     * Columna izquierda: datos del usuario.
-     * Columna derecha: vista previa de foto de perfil.
+     * Abre un diálogo estilizado para crear o editar un usuario.
+     * Columna izquierda: datos del usuario. Columna derecha: foto de perfil.
      *
-     * @param usuario Usuario a editar, o null si se crea uno nuevo.
+     * @param usuario Usuario a editar, o null para crear uno nuevo
      */
     private void abrirDialogoUsuario(Usuario usuario) {
         JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this),
                 usuario != null ? "Editar Usuario" : "Nuevo Usuario",
                 Dialog.ModalityType.APPLICATION_MODAL);
-        dialog.setSize(600, 420);
+        dialog.setSize(620, 450);
         dialog.setLocationRelativeTo(this);
         dialog.setResizable(false);
 
-        // ── Panel principal con dos columnas ──────────────────────────
+        // ── Panel principal con dos columnas ──────────────────────────────
         JPanel panelPrincipal = new JPanel(new GridLayout(1, 2, 15, 0));
-        panelPrincipal.setBorder(BorderFactory.createEmptyBorder(15, 15, 10, 15));
+        panelPrincipal.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 20));
+        panelPrincipal.setBackground(FONDO);
 
-        // ── COLUMNA IZQUIERDA: campos de datos ────────────────────────
+        // ── COLUMNA IZQUIERDA: campos de datos ───────────────────────────
         JPanel panelDatos = new JPanel(new GridBagLayout());
-        panelDatos.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEtchedBorder(), "Datos del Usuario",
-                TitledBorder.LEFT, TitledBorder.TOP));
+        panelDatos.setOpaque(false);
+        panelDatos.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(BORDE, 1, true),
+                BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        ));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(6, 6, 6, 6);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.WEST;
 
-        JTextField txtUsername    = new JTextField(usuario != null ? usuario.getUsername() : "", 18);
-        JTextField txtNombre      = new JTextField(usuario != null ? usuario.getNombreCompleto() : "", 18);
+        JTextField txtUsername = new JTextField(usuario != null ? usuario.getUsername() : "", 18);
+        JTextField txtNombre = new JTextField(usuario != null ? usuario.getNombreCompleto() : "", 18);
         JPasswordField txtPassword = new JPasswordField(18);
-        JComboBox<String> cmbRol  = new JComboBox<>(new String[]{"EMPLEADO", "ADMIN"});
+        JComboBox<String> cmbRol = new JComboBox<>(new String[]{"EMPLEADO", "ADMIN"});
 
         if (usuario != null) {
             cmbRol.setSelectedItem(usuario.getRol());
         }
 
-        String lblPassword = usuario != null ? "Contraseña (vacío = sin cambio):" : "Contraseña:";
+        String lblPasswordTxt = usuario != null ? "Contraseña (vacío = sin cambio):" : "Contraseña:";
 
-        addField(panelDatos, gbc, 0, "Username:",     txtUsername);
+        // Agregar campos al formulario
+        addField(panelDatos, gbc, 0, "Username:", txtUsername);
         addField(panelDatos, gbc, 1, "Nombre Completo:", txtNombre);
-        addField(panelDatos, gbc, 2, lblPassword,     txtPassword);
-        addField(panelDatos, gbc, 3, "Rol:",          cmbRol);
+        addField(panelDatos, gbc, 2, lblPasswordTxt, txtPassword);
+        addField(panelDatos, gbc, 3, "Rol:", cmbRol);
 
-        // ── COLUMNA DERECHA: foto de perfil ───────────────────────────
+        // ── COLUMNA DERECHA: foto de perfil ──────────────────────────────
         JPanel panelFoto = new JPanel(new BorderLayout(0, 8));
-        panelFoto.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEtchedBorder(), "Foto de Perfil",
-                TitledBorder.LEFT, TitledBorder.TOP));
+        panelFoto.setOpaque(false);
+        panelFoto.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(BORDE, 1, true),
+                BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        ));
 
-        // Contenedor de imagen con fondo gris claro
+        // Contenedor de imagen con fondo suave
         JLabel lblFoto = new JLabel("Sin foto", SwingConstants.CENTER);
         lblFoto.setPreferredSize(new Dimension(220, 220));
         lblFoto.setMinimumSize(new Dimension(220, 220));
         lblFoto.setOpaque(true);
-        lblFoto.setBackground(new Color(230, 232, 240));
-        lblFoto.setForeground(new Color(130, 130, 150));
-        lblFoto.setBorder(BorderFactory.createLineBorder(new Color(180, 185, 210)));
+        lblFoto.setBackground(FILA_ALTERNA);
+        lblFoto.setForeground(TEXTO_GRIS);
+        lblFoto.setBorder(BorderFactory.createLineBorder(BORDE, 1, true));
 
         // Ruta de foto actual
-        final String[] fotoRuta = { usuario != null ? usuario.getFotoRuta() : null };
+        final String[] fotoRuta = {usuario != null ? usuario.getFotoRuta() : null};
 
         // Mostrar foto actual si existe
         if (fotoRuta[0] != null && !fotoRuta[0].isEmpty()) {
             cargarMiniatura(lblFoto, fotoRuta[0]);
         }
 
-        JButton btnSeleccionarFoto = new JButton("📁 Seleccionar Foto");
-        btnSeleccionarFoto.setToolTipText("Selecciona una imagen JPG o PNG");
-
-        JButton btnQuitarFoto = new JButton("✖ Quitar Foto");
-        btnQuitarFoto.setToolTipText("Eliminar la foto de perfil asignada");
+        JButton btnSeleccionarFoto = crearBotonPastel("📁 Seleccionar Foto", LAVANDA, Color.WHITE);
+        JButton btnQuitarFoto = crearBotonPastel("✖ Quitar Foto", FILA_ALTERNA, TEXTO_OSCURO);
 
         JPanel panelBotonesFoto = new JPanel(new GridLayout(1, 2, 5, 0));
+        panelBotonesFoto.setOpaque(false);
         panelBotonesFoto.add(btnSeleccionarFoto);
         panelBotonesFoto.add(btnQuitarFoto);
 
@@ -233,18 +355,21 @@ public class UsuariosFrame extends JPanel {
         panelPrincipal.add(panelDatos);
         panelPrincipal.add(panelFoto);
 
-        // ── Botones Guardar / Cancelar ────────────────────────────────
-        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
-        JButton btnGuardar  = new JButton("✔ Guardar");
-        JButton btnCancelar = new JButton("Cancelar");
-        btnGuardar.putClientProperty("JButton.buttonType", "default");
+        // ── Botones Guardar / Cancelar ────────────────────────────────────
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 8));
+        panelBotones.setBackground(FONDO);
+
+        JButton btnCancelar = crearBotonPastel("Cancelar", FILA_ALTERNA, TEXTO_OSCURO);
+        JButton btnGuardar = crearBotonPastel("✔ Guardar", CORAL, Color.WHITE);
+
         panelBotones.add(btnCancelar);
         panelBotones.add(btnGuardar);
 
-        // ── Layout del diálogo ────────────────────────────────────────
+        // Layout del diálogo
         dialog.setLayout(new BorderLayout());
         dialog.add(panelPrincipal, BorderLayout.CENTER);
         dialog.add(panelBotones, BorderLayout.SOUTH);
+        dialog.getContentPane().setBackground(FONDO);
 
         // Evento Cancelar
         btnCancelar.addActionListener(e -> dialog.dispose());
@@ -252,9 +377,9 @@ public class UsuariosFrame extends JPanel {
         // Evento Guardar
         btnGuardar.addActionListener(e -> {
             String username = txtUsername.getText().trim();
-            String nombre   = txtNombre.getText().trim();
+            String nombre = txtNombre.getText().trim();
             String password = new String(txtPassword.getPassword());
-            String rol      = (String) cmbRol.getSelectedItem();
+            String rol = (String) cmbRol.getSelectedItem();
 
             // Validación de campos obligatorios
             if (username.isEmpty() || nombre.isEmpty()) {
@@ -265,7 +390,7 @@ public class UsuariosFrame extends JPanel {
             }
 
             if (usuario == null) {
-                // ── Crear nuevo usuario ───────────────────────────────
+                // Crear nuevo usuario
                 if (password.isEmpty()) {
                     JOptionPane.showMessageDialog(dialog,
                             "La contraseña es obligatoria para nuevos usuarios.",
@@ -274,34 +399,30 @@ public class UsuariosFrame extends JPanel {
                 }
                 Usuario nuevo = new Usuario(username, password, rol, nombre);
                 nuevo.setFotoRuta(fotoRuta[0]);
-                if (usuarioDAO.insertar(nuevo)) {
+                if (usuarioService.guardarUsuario(nuevo, password)) {
                     JOptionPane.showMessageDialog(dialog,
                             "Usuario creado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
                     cargarUsuarios();
                     dialog.dispose();
                 } else {
                     JOptionPane.showMessageDialog(dialog,
-                            "Error al crear el usuario. ¿El username ya existe?",
+                            "Error al crear el usuario. ¿El username ya existe o los datos son inválidos?",
                             "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } else {
-                // ── Editar usuario existente ──────────────────────────
-                boolean cambiarPassword = !password.isEmpty();
+                // Editar usuario existente
                 usuario.setUsername(username);
                 usuario.setNombreCompleto(nombre);
                 usuario.setRol(rol);
                 usuario.setFotoRuta(fotoRuta[0]);
-                if (cambiarPassword) {
-                    usuario.setPasswordHash(password);
-                }
-                if (usuarioDAO.actualizar(usuario, cambiarPassword)) {
+                if (usuarioService.guardarUsuario(usuario, password)) {
                     JOptionPane.showMessageDialog(dialog,
                             "Usuario actualizado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
                     cargarUsuarios();
                     dialog.dispose();
                 } else {
                     JOptionPane.showMessageDialog(dialog,
-                            "Error al actualizar el usuario.",
+                            "Error al actualizar el usuario. ¿El username ya está en uso?",
                             "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
@@ -314,33 +435,31 @@ public class UsuariosFrame extends JPanel {
      * Agrega un par (etiqueta, componente) al panel con GridBagLayout.
      */
     private void addField(JPanel panel, GridBagConstraints gbc, int row, String label, JComponent comp) {
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0.3;
-        panel.add(new JLabel(label), gbc);
-        gbc.gridx = 1; gbc.weightx = 0.7;
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        gbc.weightx = 0.3;
+        JLabel lbl = new JLabel(label);
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lbl.setForeground(TEXTO_OSCURO);
+        panel.add(lbl, gbc);
+        gbc.gridx = 1;
+        gbc.weightx = 0.7;
         panel.add(comp, gbc);
     }
 
     /**
-     * Copia la foto seleccionada al directorio imagenes/empleados/ con nombre único,
-     * y devuelve la ruta relativa para guardar en la base de datos.
+     * Copia la foto seleccionada al directorio imagenes/empleados/.
      *
-     * @param archivoOrigen Archivo de imagen seleccionado por el usuario.
-     * @return Ruta relativa guardada (ej. "imagenes/empleados/1717200000000_foto.jpg"), o null si falla.
+     * @param archivoOrigen Archivo de imagen seleccionado
+     * @return Ruta relativa guardada, o null si falla
      */
     private String copiarFotoEmpleado(File archivoOrigen) {
         try {
-            // Crear directorio si no existe
             Path dirDestino = Paths.get("imagenes", "empleados");
             Files.createDirectories(dirDestino);
-
-            // Nombre único con timestamp
             String nombreArchivo = System.currentTimeMillis() + "_" + archivoOrigen.getName();
             Path rutaDestino = dirDestino.resolve(nombreArchivo);
-
-            // Copiar archivo
             Files.copy(archivoOrigen.toPath(), rutaDestino, StandardCopyOption.REPLACE_EXISTING);
-
-            // Devolver ruta relativa con separadores estándar
             return "imagenes/empleados/" + nombreArchivo;
         } catch (IOException ex) {
             System.err.println("Error al copiar foto de empleado: " + ex.getMessage());
@@ -349,10 +468,7 @@ public class UsuariosFrame extends JPanel {
     }
 
     /**
-     * Carga y escala la imagen de la ruta dada en el JLabel de vista previa.
-     *
-     * @param label    JLabel donde mostrar la imagen.
-     * @param rutaFoto Ruta relativa o absoluta de la foto.
+     * Carga y escala la imagen en el JLabel de vista previa.
      */
     private void cargarMiniatura(JLabel label, String rutaFoto) {
         if (rutaFoto == null || rutaFoto.isEmpty()) {
@@ -376,13 +492,14 @@ public class UsuariosFrame extends JPanel {
     }
 
     /**
-     * Abre el diálogo de edición con el usuario seleccionado en la tabla.
+     * Abre el diálogo de edición con el usuario seleccionado.
      */
     private void editarUsuarioSeleccionado() {
         int fila = tablaUsuarios.getSelectedRow();
         if (fila >= 0) {
-            int id = (int) modeloTabla.getValueAt(fila, 0);
-            Usuario usuario = usuarioDAO.buscarPorId(id);
+            int modelRow = tablaUsuarios.convertRowIndexToModel(fila);
+            int id = (int) modeloTabla.getValueAt(modelRow, 4);
+            Usuario usuario = usuarioService.obtenerPorId(id);
             if (usuario != null) {
                 abrirDialogoUsuario(usuario);
             }
@@ -390,7 +507,7 @@ public class UsuariosFrame extends JPanel {
     }
 
     /**
-     * Elimina el usuario seleccionado en la tabla.
+     * Elimina el usuario seleccionado.
      */
     private void eliminarUsuarioSeleccionado() {
         int fila = tablaUsuarios.getSelectedRow();
@@ -401,14 +518,15 @@ public class UsuariosFrame extends JPanel {
             return;
         }
 
-        String nombre = (String) modeloTabla.getValueAt(fila, 2);
+        int modelRow = tablaUsuarios.convertRowIndexToModel(fila);
+        String nombre = (String) modeloTabla.getValueAt(modelRow, 2);
         int confirm = JOptionPane.showConfirmDialog(this,
                 "¿Estás seguro de eliminar al usuario '" + nombre + "'?",
                 "Confirmar eliminación", JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            int id = (int) modeloTabla.getValueAt(fila, 0);
-            if (usuarioDAO.eliminar(id)) {
+            int id = (int) modeloTabla.getValueAt(modelRow, 4);
+            if (usuarioService.eliminarUsuario(id)) {
                 JOptionPane.showMessageDialog(this, "Usuario eliminado.",
                         "Éxito", JOptionPane.INFORMATION_MESSAGE);
                 cargarUsuarios();
@@ -416,6 +534,182 @@ public class UsuariosFrame extends JPanel {
                 JOptionPane.showMessageDialog(this, "Error al eliminar el usuario.",
                         "Error", JOptionPane.ERROR_MESSAGE);
             }
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // RENDERERS PERSONALIZADOS
+    // ══════════════════════════════════════════════════════════════════════
+
+    /**
+     * Renderer para la columna de foto de perfil.
+     * Muestra la foto recortada en forma circular (50x50px).
+     * Si no hay foto, muestra un círculo lavanda con las iniciales del usuario.
+     */
+    private class FotoCellRenderer extends JPanel implements TableCellRenderer {
+        private Image foto;
+        private String iniciales = "";
+        private boolean tieneFoto = false;
+        private boolean isSelected = false;
+        private int row = 0;
+
+        public FotoCellRenderer() {
+            setOpaque(true);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus,
+                                                       int row, int column) {
+            this.isSelected = isSelected;
+            this.row = row;
+            this.tieneFoto = false;
+            this.foto = null;
+            this.iniciales = "";
+
+            // Intentar cargar la foto desde la ruta
+            String ruta = value != null ? value.toString() : "";
+            if (!ruta.isEmpty()) {
+                File f = new File(ruta);
+                if (f.exists()) {
+                    ImageIcon icon = new ImageIcon(f.getAbsolutePath());
+                    foto = icon.getImage().getScaledInstance(42, 42, Image.SCALE_SMOOTH);
+                    tieneFoto = true;
+                }
+            }
+
+            // Si no hay foto, obtener iniciales del nombre
+            if (!tieneFoto) {
+                int modelRow = table.convertRowIndexToModel(row);
+                Object nombreObj = table.getModel().getValueAt(modelRow, 2);
+                if (nombreObj != null) {
+                    String nombre = nombreObj.toString().trim();
+                    if (!nombre.isEmpty()) {
+                        String[] partes = nombre.split("\\s+");
+                        iniciales = "";
+                        for (int i = 0; i < Math.min(partes.length, 2); i++) {
+                            iniciales += partes[i].substring(0, 1).toUpperCase();
+                        }
+                    }
+                }
+            }
+
+            // Color de fondo según selección y fila
+            if (isSelected) {
+                setBackground(HOVER_LAVANDA);
+            } else {
+                setBackground(row % 2 == 0 ? Color.WHITE : FILA_ALTERNA);
+            }
+
+            return this;
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            int size = 42;
+            int x = (getWidth() - size) / 2;
+            int y = (getHeight() - size) / 2;
+
+            if (tieneFoto && foto != null) {
+                // Dibujar foto recortada en forma circular
+                Shape clip = new Ellipse2D.Double(x, y, size, size);
+                g2.setClip(clip);
+                g2.drawImage(foto, x, y, size, size, null);
+                g2.setClip(null);
+
+                // Borde del círculo
+                g2.setColor(BORDE);
+                g2.setStroke(new BasicStroke(1.5f));
+                g2.drawOval(x, y, size, size);
+            } else {
+                // Círculo lavanda con iniciales en blanco
+                g2.setColor(LAVANDA);
+                g2.fillOval(x, y, size, size);
+
+                // Iniciales centradas
+                g2.setColor(Color.WHITE);
+                g2.setFont(new Font("Segoe UI", Font.BOLD, 16));
+                FontMetrics fm = g2.getFontMetrics();
+                int tx = x + (size - fm.stringWidth(iniciales)) / 2;
+                int ty = y + (size + fm.getAscent() - fm.getDescent()) / 2;
+                g2.drawString(iniciales, tx, ty);
+            }
+
+            g2.dispose();
+        }
+    }
+
+    /**
+     * Renderer para la columna de rol que muestra un badge con color.
+     * - ADMIN: fondo lavanda (#B8A9E8), texto blanco
+     * - EMPLEADO: fondo menta (#A8E6CF), texto verde oscuro
+     */
+    private class RolBadgeRenderer extends JPanel implements TableCellRenderer {
+        private String rol = "";
+        private boolean isSelected = false;
+        private int row = 0;
+
+        public RolBadgeRenderer() {
+            setOpaque(true);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus,
+                                                       int row, int column) {
+            this.rol = value != null ? value.toString() : "";
+            this.isSelected = isSelected;
+            this.row = row;
+
+            if (isSelected) {
+                setBackground(HOVER_LAVANDA);
+            } else {
+                setBackground(row % 2 == 0 ? Color.WHITE : FILA_ALTERNA);
+            }
+
+            return this;
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+            // Determinar colores del badge según el rol
+            Color badgeBg;
+            Color badgeFg;
+            if (rol.equalsIgnoreCase("ADMIN")) {
+                badgeBg = LAVANDA;
+                badgeFg = Color.WHITE;
+            } else {
+                badgeBg = MENTA;
+                badgeFg = VERDE_OSCURO;
+            }
+
+            // Dibujar badge pill (redondeado)
+            g2.setFont(new Font("Segoe UI", Font.BOLD, 11));
+            FontMetrics fm = g2.getFontMetrics();
+            int textW = fm.stringWidth(rol);
+            int badgeW = textW + 20;
+            int badgeH = 24;
+            int bx = 10;
+            int by = (getHeight() - badgeH) / 2;
+
+            g2.setColor(badgeBg);
+            g2.fillRoundRect(bx, by, badgeW, badgeH, 12, 12);
+
+            g2.setColor(badgeFg);
+            int tx = bx + (badgeW - textW) / 2;
+            int ty = by + (badgeH + fm.getAscent() - fm.getDescent()) / 2;
+            g2.drawString(rol, tx, ty);
+
+            g2.dispose();
         }
     }
 }

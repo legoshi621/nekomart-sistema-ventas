@@ -61,10 +61,9 @@ public class ConexionDB {
                 if (!tablaExiste("usuarios")) {
                     System.out.println("Base de datos no encontrada. Creando archivo e inicializando tablas...");
                     DatabaseInitializer.inicializarBaseDeDatos(conexion);
-                } else {
-                    // Ejecutar migración automática de nuevas columnas
-                    DatabaseInitializer.verificarYMigrarColumnas(conexion);
                 }
+                // Ejecutar migración automática de nuevas columnas (siempre)
+                DatabaseInitializer.verificarYMigrarColumnas(conexion);
 
             } catch (ClassNotFoundException e) {
                 throw new SQLException(

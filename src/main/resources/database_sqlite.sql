@@ -20,7 +20,10 @@ CREATE TABLE IF NOT EXISTS productos (
     stock INTEGER NOT NULL CHECK (stock >= 0),
     stock_minimo INTEGER NOT NULL DEFAULT 0 CHECK (stock_minimo >= 0),
     categoria TEXT NOT NULL,
-    imagen_ruta TEXT
+    imagen_ruta TEXT,
+    fecha_caducidad TEXT,
+    lote TEXT,
+    activo INTEGER NOT NULL DEFAULT 1
 );
 
 -- 3. Tabla de Ventas (Cabecera)

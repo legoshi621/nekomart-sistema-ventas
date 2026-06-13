@@ -12,6 +12,9 @@ public class Producto {
     private int stockMinimo;
     private String categoria;
     private String imagenRuta; // Ruta de la imagen del producto
+    private String fechaCaducidad;
+    private String lote;
+    private boolean activo = true;
 
     // Constructor vacío
     public Producto() {
@@ -104,6 +107,30 @@ public class Producto {
         this.imagenRuta = imagenRuta;
     }
 
+    public String getFechaCaducidad() {
+        return fechaCaducidad;
+    }
+
+    public void setFechaCaducidad(String fechaCaducidad) {
+        this.fechaCaducidad = fechaCaducidad;
+    }
+
+    public String getLote() {
+        return lote;
+    }
+
+    public void setLote(String lote) {
+        this.lote = lote;
+    }
+
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
+    }
+
     @Override
     public String toString() {
         return "Producto{" +
@@ -115,6 +142,9 @@ public class Producto {
                 ", stockMinimo=" + stockMinimo +
                 ", categoria='" + categoria + '\'' +
                 ", imagenRuta='" + imagenRuta + '\'' +
+                ", fechaCaducidad='" + fechaCaducidad + '\'' +
+                ", lote='" + lote + '\'' +
+                ", activo=" + activo +
                 '}';
     }
 }

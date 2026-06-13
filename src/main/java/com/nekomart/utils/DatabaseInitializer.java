@@ -75,6 +75,36 @@ public class DatabaseInitializer {
                 System.err.println("Error al agregar columna 'foto_ruta': " + e.getMessage());
             }
         }
+
+        // Migración de fecha_caducidad en la tabla productos
+        if (!columnaExiste(conexion, "productos", "fecha_caducidad")) {
+            try (Statement stmt = conexion.createStatement()) {
+                stmt.execute("ALTER TABLE productos ADD COLUMN fecha_caducidad TEXT;");
+                System.out.println("✅ Columna 'fecha_caducidad' agregada a 'productos' exitosamente.");
+            } catch (Exception e) {
+                System.err.println("Error al agregar columna 'fecha_caducidad': " + e.getMessage());
+            }
+        }
+
+        // Migración de lote en la tabla productos
+        if (!columnaExiste(conexion, "productos", "lote")) {
+            try (Statement stmt = conexion.createStatement()) {
+                stmt.execute("ALTER TABLE productos ADD COLUMN lote TEXT;");
+                System.out.println("✅ Columna 'lote' agregada a 'productos' exitosamente.");
+            } catch (Exception e) {
+                System.err.println("Error al agregar columna 'lote': " + e.getMessage());
+            }
+        }
+
+        // Migración de activo en la tabla productos
+        if (!columnaExiste(conexion, "productos", "activo")) {
+            try (Statement stmt = conexion.createStatement()) {
+                stmt.execute("ALTER TABLE productos ADD COLUMN activo INTEGER NOT NULL DEFAULT 1;");
+                System.out.println("✅ Columna 'activo' agregada a 'productos' exitosamente.");
+            } catch (Exception e) {
+                System.err.println("Error al agregar columna 'activo': " + e.getMessage());
+            }
+        }
     }
 
     /**
