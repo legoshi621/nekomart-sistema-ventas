@@ -3,6 +3,7 @@ package com.nekomart.ui;
 import com.nekomart.Main;
 import com.nekomart.models.Usuario;
 import com.nekomart.utils.SessionManager;
+import com.nekomart.utils.DisenoSystem;
 import com.nekomart.services.UsuarioService;
 
 import javax.swing.*;
@@ -21,13 +22,13 @@ import java.awt.geom.Path2D;
 public class MainFrame extends JFrame {
 
     // ── Colores de la paleta POS ─────────────────────────────────────────
-    private static final Color AZUL_POS = new Color(0x4A, 0x90, 0xD9);        // #4A90D9 - Header/Azul principal
-    private static final Color VERDE_PRINCIPAL = new Color(0x27, 0xAE, 0x60); // #27AE60 - Botón principal
-    private static final Color ROJO_CANCELAR = new Color(0xE7, 0x4C, 0x3C);   // #E74C3C - Botón cancelar
-    private static final Color FONDO = new Color(0xF5, 0xF7, 0xFA);           // #F5F7FA - Fondo general
-    private static final Color TEXTO_OSCURO = new Color(0x2C, 0x3E, 0x50);    // #2C3E50 - Texto principal
-    private static final Color TEXTO_GRIS = new Color(0x7F, 0x8C, 0x8D);      // #7F8C8D - Texto secundario
-    private static final Color BORDE = new Color(0xE0, 0xE6, 0xED);           // #E0E6ED - Bordes
+    private static final Color AZUL_POS = DisenoSystem.AZUL_PRIMARIO;        // #1E88E5 - Header/Azul principal
+    private static final Color VERDE_PRINCIPAL = DisenoSystem.AZUL_PRIMARIO; // Botones, sidebar activo
+    private static final Color ROJO_CANCELAR = DisenoSystem.PELIGRO;         // #EF4444 - Botón cancelar
+    private static final Color FONDO = DisenoSystem.FONDO_PRINCIPAL;         // #F8FAFC - Fondo general
+    private static final Color TEXTO_OSCURO = DisenoSystem.GRIS_OSCURO;      // #1E293B - Texto principal
+    private static final Color TEXTO_GRIS = DisenoSystem.GRIS_MEDIO;         // #64748B - Texto secundario
+    private static final Color BORDE = DisenoSystem.GRIS_CLARO;              // #CBD5E1 - Bordes
 
     // ── Componentes de la interfaz ───────────────────────────────────────
     private JButton btnCerrarSesion;
@@ -423,7 +424,7 @@ public class MainFrame extends JFrame {
         g2.fillOval(cx + 1, cy - 3, 6, 6);
 
         // Nariz
-        g2.setColor(new Color(0x27, 0xAE, 0x60)); // Verde principal
+        g2.setColor(DisenoSystem.EXITO); // Verde principal
         g2.fillOval(cx - 2, cy + 3, 4, 3);
     }
 

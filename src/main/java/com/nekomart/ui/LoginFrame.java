@@ -4,6 +4,7 @@ import com.nekomart.Main;
 import com.nekomart.models.Usuario;
 import com.nekomart.services.AuthService;
 import com.nekomart.utils.SessionManager;
+import com.nekomart.utils.DisenoSystem;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -15,7 +16,7 @@ import java.io.File;
 
 /**
  * Pantalla de inicio de sesión (Login) con diseño POS profesional.
- * Gradiente azul de fondo (#4A90D9 → #357ABD), panel blanco con sombra,
+ * Gradiente azul de fondo (#4A90D9 → #357ABD) -> (AZUL_PRIMARIO -> AZUL_OSCURO), panel blanco con sombra,
  * logo grande (200x200px) o fallback de texto, campos estilizados y botón verde.
  * Incluye un botón para cambiar entre tema claro y oscuro de manera dinámica.
  * Todo el código está comentado en español.
@@ -23,14 +24,14 @@ import java.io.File;
 public class LoginFrame extends JFrame {
 
     // ── Colores de la paleta POS ─────────────────────────────────────────
-    private static final Color AZUL_POS = new Color(0x4A, 0x90, 0xD9);        // #4A90D9 - Azul principal
-    private static final Color AZUL_POS_OSCURO = new Color(0x35, 0x7A, 0xBD); // #357ABD - Azul oscuro gradiente
-    private static final Color VERDE_PRINCIPAL = new Color(0x27, 0xAE, 0x60); // #27AE60 - Botón principal
-    private static final Color VERDE_HOVER = new Color(0x21, 0x96, 0x53);     // Hover del botón verde
-    private static final Color TEXTO_OSCURO = new Color(0x2C, 0x3E, 0x50);    // #2C3E50 - Texto principal
-    private static final Color TEXTO_GRIS = new Color(0x7F, 0x8C, 0x8D);      // #7F8C8D - Texto secundario
-    private static final Color BORDE_CAMPO = new Color(0xE0, 0xE6, 0xED);     // #E0E6ED - Borde campos
-    private static final Color FONDO_GENERAL = new Color(0xF5, 0xF7, 0xFA);   // #F5F7FA - Fondo general
+    private static final Color AZUL_POS = DisenoSystem.AZUL_PRIMARIO;        // #1E88E5 - Azul principal
+    private static final Color AZUL_POS_OSCURO = DisenoSystem.AZUL_OSCURO;   // #1565C0 - Azul oscuro gradiente
+    private static final Color VERDE_PRINCIPAL = DisenoSystem.AZUL_PRIMARIO; // #1E88E5 - Botón principal
+    private static final Color VERDE_HOVER = DisenoSystem.AZUL_OSCURO;       // Hover del botón principal
+    private static final Color TEXTO_OSCURO = DisenoSystem.GRIS_OSCURO;      // #1E293B - Texto principal
+    private static final Color TEXTO_GRIS = DisenoSystem.GRIS_MEDIO;         // #64748B - Texto secundario
+    private static final Color BORDE_CAMPO = DisenoSystem.GRIS_CLARO;        // #CBD5E1 - Borde campos
+    private static final Color FONDO_GENERAL = DisenoSystem.FONDO_PRINCIPAL; // #F8FAFC - Fondo general
 
     // ── Componentes de la interfaz ───────────────────────────────────────
     private JTextField txtUsuario;
@@ -405,7 +406,7 @@ public class LoginFrame extends JFrame {
         g2.fill(orejaDer);
 
         // Interior de orejas (azul claro)
-        g2.setColor(new Color(0xE8, 0xF4, 0xFD));
+        g2.setColor(DisenoSystem.AZUL_MUY_CLARO);
         Path2D intIzq = new Path2D.Double();
         intIzq.moveTo(cx - size + 12, cy - size + 12);
         intIzq.lineTo(cx - size / 2 - 3, cy - size - 10);
@@ -433,7 +434,7 @@ public class LoginFrame extends JFrame {
         g2.fillOval(cx + 7, cy - 3, 3, 3);
 
         // Nariz (triángulo verde principal)
-        g2.setColor(VERDE_PRINCIPAL);
+        g2.setColor(DisenoSystem.EXITO);
         Path2D nariz = new Path2D.Double();
         nariz.moveTo(cx, cy + 4);
         nariz.lineTo(cx - 4, cy + 10);

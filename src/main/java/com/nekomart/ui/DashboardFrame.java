@@ -1,6 +1,7 @@
 package com.nekomart.ui;
 
 import com.nekomart.services.EstadisticasService;
+import com.nekomart.utils.DisenoSystem;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -24,18 +25,18 @@ import java.util.Map;
 public class DashboardFrame extends JPanel {
 
     // ── Colores de la paleta pastel ──────────────────────────────────────
-    private static final Color LAVANDA = new Color(184, 169, 232);
-    private static final Color LAVANDA_CLARO = new Color(212, 196, 240);
-    private static final Color MENTA = new Color(168, 230, 207);
-    private static final Color DURAZNO = new Color(255, 211, 182);
-    private static final Color CORAL = new Color(255, 139, 148);
-    private static final Color ROSA_PASTEL = new Color(255, 209, 220);
-    private static final Color AZUL_CLARO = new Color(168, 216, 234);
-    private static final Color FONDO = new Color(250, 250, 250);
-    private static final Color TEXTO_OSCURO = new Color(45, 55, 72);
-    private static final Color TEXTO_GRIS = new Color(113, 128, 150);
-    private static final Color BORDE = new Color(226, 232, 240);
-    private static final Color FILA_ALTERNA = new Color(247, 250, 252);
+    private static final Color LAVANDA = DisenoSystem.AZUL_PRIMARIO;
+    private static final Color LAVANDA_CLARO = DisenoSystem.AZUL_MUY_CLARO;
+    private static final Color MENTA = DisenoSystem.EXITO;
+    private static final Color DURAZNO = DisenoSystem.ADVERTENCIA;
+    private static final Color CORAL = DisenoSystem.AZUL_PRIMARIO;
+    private static final Color ROSA_PASTEL = DisenoSystem.AZUL_CLARO;
+    private static final Color AZUL_CLARO = DisenoSystem.AZUL_CLARO;
+    private static final Color FONDO = DisenoSystem.FONDO_PRINCIPAL;
+    private static final Color TEXTO_OSCURO = DisenoSystem.GRIS_OSCURO;
+    private static final Color TEXTO_GRIS = DisenoSystem.GRIS_MEDIO;
+    private static final Color BORDE = DisenoSystem.GRIS_CLARO;
+    private static final Color FILA_ALTERNA = DisenoSystem.GRIS_MUY_CLARO;
 
     private final EstadisticasService estadisticasService;
     private final DecimalFormat df = new DecimalFormat("$#,##0.00");
@@ -87,10 +88,10 @@ public class DashboardFrame extends JPanel {
         JPanel panelTarjetas = new JPanel(new GridLayout(1, 4, 15, 0));
         panelTarjetas.setOpaque(false);
 
-        panelTarjetas.add(crearTarjeta("💰 Ventas de Hoy", lblVentasHoy = new JLabel("$0.00"), AZUL_CLARO));
-        panelTarjetas.add(crearTarjeta("📊 Ventas del Mes", lblVentasMes = new JLabel("$0.00"), MENTA));
-        panelTarjetas.add(crearTarjeta("📦 Prod. Vendidos Hoy", lblProductosHoy = new JLabel("0 unidades"), DURAZNO));
-        panelTarjetas.add(crearTarjeta("💵 Ingresos Totales", lblIngresosTotales = new JLabel("$0.00"), ROSA_PASTEL));
+        panelTarjetas.add(crearTarjeta("💰 Ventas de Hoy", lblVentasHoy = new JLabel("$0.00"), DisenoSystem.AZUL_PRIMARIO));
+        panelTarjetas.add(crearTarjeta("📊 Ventas del Mes", lblVentasMes = new JLabel("$0.00"), DisenoSystem.EXITO));
+        panelTarjetas.add(crearTarjeta("📦 Prod. Vendidos Hoy", lblProductosHoy = new JLabel("0 unidades"), DisenoSystem.ADVERTENCIA));
+        panelTarjetas.add(crearTarjeta("💵 Ingresos Totales", lblIngresosTotales = new JLabel("$0.00"), DisenoSystem.AZUL_CLARO));
 
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -260,15 +261,24 @@ public class DashboardFrame extends JPanel {
     /**
      * Helper para crear tarjetas con bordes redondeados y un fondo de color pastel.
      */
-    private JPanel crearTarjeta(String titulo, JLabel lblValor, Color bgColor) {
+    private JPanel crearTarjeta(String titulo, JLabel lblValor, Color accentColor) {
         JPanel card = new JPanel(new BorderLayout(5, 5)) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(bgColor);
+                
+                // Fondo de la tarjeta (blanco o gris oscuro)
+                g2.setColor(com.nekomart.Main.isDarkMode ? new Color(45, 55, 72) : DisenoSystem.BLANCO);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
-                g2.setColor(BORDE);
+                
+                // Barra de acento izquierda
+                g2.setColor(accentColor);
+                g2.fillRoundRect(0, 0, 6, getHeight(), 16, 16);
+                g2.fillRect(0, 0, 3, getHeight()); // Rellenar esquinas internas
+                
+                // Borde de la tarjeta
+                g2.setColor(com.nekomart.Main.isDarkMode ? new Color(60, 70, 90) : BORDE);
                 g2.setStroke(new BasicStroke(1));
                 g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
                 g2.dispose();
@@ -279,10 +289,10 @@ public class DashboardFrame extends JPanel {
 
         JLabel lblTitulo = new JLabel(titulo);
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblTitulo.setForeground(TEXTO_OSCURO);
+        lblTitulo.setForeground(com.nekomart.Main.isDarkMode ? Color.WHITE : TEXTO_OSCURO);
 
         lblValor.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        lblValor.setForeground(TEXTO_OSCURO);
+        lblValor.setForeground(com.nekomart.Main.isDarkMode ? Color.WHITE : TEXTO_OSCURO);
 
         card.add(lblTitulo, BorderLayout.NORTH);
         card.add(lblValor, BorderLayout.CENTER);
@@ -299,9 +309,9 @@ public class DashboardFrame extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(Color.WHITE);
+                g2.setColor(com.nekomart.Main.isDarkMode ? new Color(45, 55, 72) : DisenoSystem.BLANCO);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
-                g2.setColor(BORDE);
+                g2.setColor(com.nekomart.Main.isDarkMode ? new Color(60, 70, 90) : BORDE);
                 g2.setStroke(new BasicStroke(1));
                 g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
                 g2.dispose();
@@ -309,12 +319,12 @@ public class DashboardFrame extends JPanel {
         };
         container.setOpaque(false);
         container.setBorder(new EmptyBorder(15, 15, 15, 15));
-        container.setBackground(Color.WHITE);
+        container.setBackground(com.nekomart.Main.isDarkMode ? new Color(45, 55, 72) : DisenoSystem.BLANCO);
 
         JLabel lblTitle = new JLabel(titulo);
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        lblTitle.setForeground(TEXTO_OSCURO);
-        lblTitle.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, BORDE));
+        lblTitle.setForeground(com.nekomart.Main.isDarkMode ? Color.WHITE : TEXTO_OSCURO);
+        lblTitle.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, com.nekomart.Main.isDarkMode ? new Color(60, 70, 90) : BORDE));
 
         container.add(lblTitle, BorderLayout.NORTH);
         return container;
@@ -406,7 +416,7 @@ public class DashboardFrame extends JPanel {
                 double valorLine = (i * maxValor / divisiones);
 
                 // Línea de cuadrícula tenue
-                g2.setColor(new Color(240, 240, 240));
+                g2.setColor(com.nekomart.Main.isDarkMode ? new Color(60, 60, 60) : DisenoSystem.GRIS_MUY_CLARO);
                 g2.drawLine(paddingIzq + 1, yLine, width - paddingDer, yLine);
 
                 // Etiqueta del valor en el Eje Y
@@ -434,8 +444,9 @@ public class DashboardFrame extends JPanel {
                 int bx = paddingIzq + i * (barW + gap) + (gap / 2);
                 int by = height - paddingInf - barH;
 
-                // Dibujar barra con bordes superiores redondeados (usando clip)
-                g2.setColor(CORAL);
+                // Dibujar barra con degradado azul primario a azul claro
+                GradientPaint gp = new GradientPaint(bx, by, DisenoSystem.AZUL_PRIMARIO, bx, by + barH, DisenoSystem.AZUL_CLARO);
+                g2.setPaint(gp);
                 Shape barShape = new RoundRectangle2D.Double(bx, by, barW, barH + 10, 6, 6);
                 Shape oldClip = g2.getClip();
                 // Limitar el dibujo al área superior al eje X
@@ -445,7 +456,7 @@ public class DashboardFrame extends JPanel {
 
                 // Dibujar valor sobre la barra
                 if (valor > 0) {
-                    g2.setColor(TEXTO_OSCURO);
+                    g2.setColor(com.nekomart.Main.isDarkMode ? Color.WHITE : TEXTO_OSCURO);
                     g2.setFont(new Font("Segoe UI", Font.BOLD, 10));
                     String valStr = String.format("$%.0f", valor);
                     FontMetrics fmText = g2.getFontMetrics();
@@ -462,7 +473,7 @@ public class DashboardFrame extends JPanel {
                 }
 
                 // Dibujar etiqueta de fecha abajo de la barra
-                g2.setColor(TEXTO_OSCURO);
+                g2.setColor(com.nekomart.Main.isDarkMode ? Color.WHITE : TEXTO_OSCURO);
                 g2.setFont(new Font("Segoe UI", Font.PLAIN, 10));
                 FontMetrics fmLabel = g2.getFontMetrics();
                 int lx = bx + (barW - fmLabel.stringWidth(fechaLabel)) / 2;

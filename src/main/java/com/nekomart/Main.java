@@ -3,6 +3,7 @@ package com.nekomart;
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.nekomart.ui.LoginFrame;
+import com.nekomart.utils.DisenoSystem;
 
 import javax.swing.*;
 import java.awt.*;
@@ -58,15 +59,15 @@ public class Main {
             UIManager.put("Table.foreground", Color.WHITE); // Texto blanco
             UIManager.put("Label.foreground", Color.WHITE); // Texto etiquetas blanco
             
-            // Botones verde principal #27AE60 con texto blanco
-            UIManager.put("Button.background", new Color(0x27, 0xAE, 0x60));
+            // Botones azul primario de la nueva paleta con texto blanco
+            UIManager.put("Button.background", DisenoSystem.AZUL_PRIMARIO);
             UIManager.put("Button.foreground", Color.WHITE);
             UIManager.put("Button.arc", 8);
             
             UIManager.put("Component.arc", 8);
             UIManager.put("TextField.arc", 8);
             UIManager.put("Component.focusWidth", 2);
-            UIManager.put("Component.focusColor", new Color(0x4A, 0x90, 0xD9)); // Focus azul POS
+            UIManager.put("Component.focusColor", DisenoSystem.AZUL_CLARO); // Focus azul POS
         } catch (Exception ex) {
             System.err.println("No se pudo establecer FlatDarkLaf: " + ex.getMessage());
         }
@@ -80,22 +81,22 @@ public class Main {
             FlatLightLaf.setup();
 
             // Configuración de colores personalizados de la paleta POS
-            UIManager.put("Panel.background", new Color(0xF5, 0xF7, 0xFA)); // Fondo general #F5F7FA
-            UIManager.put("TableHeader.background", new Color(0x4A, 0x90, 0xD9)); // Cabecera azul POS
+            UIManager.put("Panel.background", DisenoSystem.FONDO_PRINCIPAL); // Fondo general
+            UIManager.put("TableHeader.background", DisenoSystem.AZUL_PRIMARIO); // Cabecera azul primario
             UIManager.put("TableHeader.foreground", Color.WHITE); // Texto blanco
-            UIManager.put("Table.background", Color.WHITE); // Fondo tabla blanco
-            UIManager.put("Table.foreground", new Color(0x2C, 0x3E, 0x50)); // Texto principal #2C3E50
-            UIManager.put("Label.foreground", new Color(0x2C, 0x3E, 0x50)); // Texto etiquetas
+            UIManager.put("Table.background", DisenoSystem.BLANCO); // Fondo tabla blanco
+            UIManager.put("Table.foreground", DisenoSystem.GRIS_OSCURO); // Texto principal
+            UIManager.put("Label.foreground", DisenoSystem.GRIS_OSCURO); // Texto etiquetas
             
-            // Botones verde principal #27AE60 con texto blanco
-            UIManager.put("Button.background", new Color(0x27, 0xAE, 0x60));
+            // Botones azul primario de la nueva paleta con texto blanco
+            UIManager.put("Button.background", DisenoSystem.AZUL_PRIMARIO);
             UIManager.put("Button.foreground", Color.WHITE);
             UIManager.put("Button.arc", 8);
             
             UIManager.put("Component.arc", 8);
             UIManager.put("TextField.arc", 8);
             UIManager.put("Component.focusWidth", 2);
-            UIManager.put("Component.focusColor", new Color(0x4A, 0x90, 0xD9)); // Focus azul POS
+            UIManager.put("Component.focusColor", DisenoSystem.AZUL_CLARO); // Focus azul POS
         } catch (Exception ex) {
             System.err.println("No se pudo establecer FlatLightLaf: " + ex.getMessage());
         }
