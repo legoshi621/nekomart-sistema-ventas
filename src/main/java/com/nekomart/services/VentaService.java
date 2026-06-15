@@ -5,6 +5,7 @@ import com.nekomart.dao.ProductoDAO;
 import com.nekomart.models.Venta;
 import com.nekomart.models.DetalleVenta;
 import com.nekomart.models.Producto;
+import com.nekomart.services.LogService;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -64,6 +65,8 @@ public class VentaService {
                 for (DetalleVenta d : detalles) {
                     productoDAO.actualizarStock(d.getProductoId(), d.getCantidad());
                 }
+                // Registrar log de auditoría de la venta completada
+                LogService.registrar(empleadoId, "VENTA", "Venta folio: " + venta.getFolio() + " Total: " + total);
                 return true;
             }
             return false;
@@ -77,8 +80,15 @@ public class VentaService {
      * Lista todas las ventas registradas.
      */
     public List<Venta> obtenerTodasLasVentas() {
+        return obtenerTodasLasVentas(-1);
+    }
+
+    /**
+     * Lista todas las ventas registradas, opcionalmente filtradas por empleado.
+     */
+    public List<Venta> obtenerTodasLasVentas(int empleadoId) {
         try {
-            return ventaDAO.listarTodas();
+            return ventaDAO.listarTodas(empleadoId);
         } catch (Exception e) {
             System.err.println("Error al obtener ventas: " + e.getMessage());
             return new ArrayList<>();
@@ -101,8 +111,15 @@ public class VentaService {
      * Obtiene las ventas filtradas por un rango de fechas.
      */
     public List<Venta> obtenerVentasPorFecha(String fechaInicio, String fechaFin) {
+        return obtenerVentasPorFecha(fechaInicio, fechaFin, -1);
+    }
+
+    /**
+     * Obtiene las ventas filtradas por un rango de fechas y opcionalmente por empleado.
+     */
+    public List<Venta> obtenerVentasPorFecha(String fechaInicio, String fechaFin, int empleadoId) {
         try {
-            return ventaDAO.listarPorRangoFechas(fechaInicio, fechaFin);
+            return ventaDAO.listarPorRangoFechas(fechaInicio, fechaFin, empleadoId);
         } catch (Exception e) {
             System.err.println("Error al obtener ventas por fecha: " + e.getMessage());
             return new ArrayList<>();

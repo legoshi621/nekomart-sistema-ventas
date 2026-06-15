@@ -2,6 +2,7 @@ package com.nekomart.services;
 
 import com.nekomart.dao.ProductoDAO;
 import com.nekomart.models.Producto;
+import com.nekomart.services.LogService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +53,13 @@ public class ProductoService {
      */
     public boolean eliminarProducto(int id) {
         try {
-            return productoDAO.eliminar(id);
+            boolean eliminado = productoDAO.eliminar(id);
+            if (eliminado) {
+                // Registrar log de auditoría al eliminar producto
+                // Se usa 0 como idUsuario porque el Service no tiene acceso al usuario actual
+                LogService.registrar(0, "ELIMINAR_PRODUCTO", "Producto ID: " + id);
+            }
+            return eliminado;
         } catch (Exception e) {
             System.err.println("Error al eliminar producto: " + e.getMessage());
             return false;

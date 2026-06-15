@@ -10,6 +10,8 @@ public class Usuario {
     private String rol; // Valores esperados: "ADMIN", "EMPLEADO"
     private String nombreCompleto;
     private String fotoRuta; // Ruta de la foto de perfil del usuario
+    private String email; // Correo electrónico del usuario
+    private String telefono; // Teléfono de contacto del usuario
 
     // Constructor vacío
     public Usuario() {
@@ -80,6 +82,22 @@ public class Usuario {
 
     public void setFotoRuta(String fotoRuta) {
         this.fotoRuta = fotoRuta;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getTelefono() {
+        return telefono;
+    }
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
     }
 
     @Override

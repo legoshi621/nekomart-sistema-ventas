@@ -36,6 +36,7 @@ public class MainFrame extends JFrame {
     private JButton btnTema;
     private JTabbedPane tabbedPane;
     private DashboardFrame dashboard;
+    private CorteCajaFrame corteCajaFrame;
     
     // Paneles y etiquetas principales expuestos para actualizaciones de tema
     private JPanel panelSuperior;
@@ -321,12 +322,14 @@ public class MainFrame extends JFrame {
         String rol = (usuario != null) ? usuario.getRol().toUpperCase() : "EMPLEADO";
 
         if (rol.equals("ADMIN")) {
-            // ADMIN ve: Dashboard, Inventario, Usuarios, Ventas, Historial
+            corteCajaFrame = new CorteCajaFrame();
+            // ADMIN ve: Dashboard, Inventario, Usuarios, Ventas, Historial, Corte de Caja
             tabbedPane.addTab("📊 Dashboard", panelInicio);
             tabbedPane.addTab("📦 Inventario", new InventarioFrame());
             tabbedPane.addTab("👥 Usuarios", new UsuariosFrame());
             tabbedPane.addTab("🛒 Ventas (POS)", new VentasFrame());
             tabbedPane.addTab("📋 Historial", new HistorialVentasFrame());
+            tabbedPane.addTab("💵 Corte de Caja", corteCajaFrame);
         } else {
             // EMPLEADO ve: Dashboard, Ventas, Historial
             tabbedPane.addTab("📊 Dashboard", panelInicio);
@@ -334,10 +337,15 @@ public class MainFrame extends JFrame {
             tabbedPane.addTab("📋 Historial", new HistorialVentasFrame());
         }
 
-        // Refrescar el Dashboard al seleccionar la pestaña correspondiente (índice 0)
+        // Refrescar el Dashboard o el Corte de Caja al seleccionar la pestaña correspondiente
         tabbedPane.addChangeListener(e -> {
-            if (tabbedPane.getSelectedIndex() == 0) {
+            int index = tabbedPane.getSelectedIndex();
+            if (index == 0) {
                 dashboard.cargarDatos();
+            } else if (rol.equals("ADMIN") && index == 5) {
+                if (corteCajaFrame != null) {
+                    corteCajaFrame.cargarEstado();
+                }
             }
         });
 

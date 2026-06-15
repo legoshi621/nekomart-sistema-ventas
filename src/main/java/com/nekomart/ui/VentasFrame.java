@@ -11,6 +11,7 @@ import com.nekomart.services.ImpresionService;
 import com.nekomart.services.CorreoService;
 import com.nekomart.utils.ConfiguracionCorreo;
 import com.nekomart.utils.SessionManager;
+import com.nekomart.utils.ThemeManager;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -39,19 +40,19 @@ public class VentasFrame extends JPanel {
     private final ProductoService productoService;
     private final VentaService ventaService;
 
-    // ── Colores de la paleta POS ─────────────────────────────────────────
-    private static Color AZUL_POS = new Color(0x4A, 0x90, 0xD9);          // #4A90D9 - Azul principal
-    private static Color VERDE_PRINCIPAL = new Color(0x27, 0xAE, 0x60);   // #27AE60 - Botón cobrar / precios
-    private static Color ROJO_CANCELAR = new Color(0xE7, 0x4C, 0x3C);     // #E74C3C - Cancelar / eliminar
-    private static Color NARANJA_NOTA = new Color(0xF3, 0x9C, 0x12);      // #F39C12 - Descuentos / notas
-    private static Color FONDO = new Color(0xF5, 0xF7, 0xFA);             // #F5F7FA - Fondo general
-    private static Color BLANCO = Color.WHITE;                             // #FFFFFF - Tarjetas
-    private static Color TEXTO_OSCURO = new Color(0x2C, 0x3E, 0x50);      // #2C3E50 - Texto principal
-    private static Color GRIS = new Color(0x7F, 0x8C, 0x8D);              // #7F8C8D - Texto secundario
-    private static Color STOCK_BAJO = new Color(0xE7, 0x4C, 0x3C);        // #E74C3C - Badge stock bajo
-    private static Color BORDE = new Color(0xE0, 0xE6, 0xED);             // #E0E6ED - Bordes
-    private static final Color TAB_ACTIVA = new Color(0xE8, 0xF4, 0xFD);  // #E8F4FD - Pestaña categoría activa
-    private static final Color TAB_INACTIVA = new Color(0xF5, 0xF7, 0xFA);// #F5F7FA - Pestaña categoría inactiva
+    // ── Colores de la paleta centralizada usando ThemeManager ────────────────
+    private static Color AZUL_POS = ThemeManager.AZUL_PRIMARIO;              // #1E88E5 - Azul principal
+    private static Color VERDE_PRINCIPAL = ThemeManager.EXITO;               // #10B981 - Botón cobrar / precios
+    private static Color ROJO_CANCELAR = ThemeManager.PELIGRO;               // #EF4444 - Cancelar / eliminar
+    private static Color NARANJA_NOTA = ThemeManager.ADVERTENCIA;            // #F59E0B - Descuentos / notas
+    private static Color FONDO = ThemeManager.FONDO_PRINCIPAL;               // #F8FAFC - Fondo general
+    private static Color BLANCO = ThemeManager.BLANCO;                       // #FFFFFF - Tarjetas
+    private static Color TEXTO_OSCURO = ThemeManager.GRIS_OSCURO;            // #1E293B - Texto principal
+    private static Color GRIS = ThemeManager.GRIS_MEDIO;                     // #64748B - Texto secundario
+    private static Color STOCK_BAJO = ThemeManager.PELIGRO;                  // #EF4444 - Badge stock bajo
+    private static Color BORDE = ThemeManager.GRIS_CLARO;                    // #CBD5E1 - Bordes
+    private static final Color TAB_ACTIVA = ThemeManager.AZUL_MUY_CLARO;     // #E3F2FD - Pestaña categoría activa
+    private static final Color TAB_INACTIVA = ThemeManager.GRIS_MUY_CLARO;   // #F1F5F9 - Pestaña categoría inactiva
 
     // Componente expuesto para el cambio de tema
     private RoundedPanel panelDerecho;
@@ -157,14 +158,14 @@ public class VentasFrame extends JPanel {
         }
         panelNorteIzquierdo.add(panelCategorias, BorderLayout.CENTER);
 
-        // Buscador de producto sutil
+        // Buscador de producto con height 50px, font 16px y placeholder grande
         JPanel panelBusqueda = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 5));
         panelBusqueda.setOpaque(false);
-        txtBuscar = new JTextField(15);
+        txtBuscar = new JTextField(18);
         txtBuscar.putClientProperty("JTextField.placeholderText", "Buscar producto... (F2)");
         txtBuscar.putClientProperty("JTextField.showClearButton", true);
-        txtBuscar.setPreferredSize(new Dimension(200, 32));
-        txtBuscar.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        txtBuscar.setPreferredSize(new Dimension(280, 50));
+        txtBuscar.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         txtBuscar.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             public void insertUpdate(javax.swing.event.DocumentEvent e) { filtrar(); }
             public void removeUpdate(javax.swing.event.DocumentEvent e) { filtrar(); }
@@ -188,13 +189,31 @@ public class VentasFrame extends JPanel {
 
         panelIzquierdo.add(scrollGrid, BorderLayout.CENTER);
 
-        // --- COLUMNA DERECHA (30%) — Carrito con borde izquierdo azul #4A90D9 ---
-        panelDerecho = new RoundedPanel(12, BLANCO, BORDE);
+        // --- COLUMNA DERECHA (40%) — Carrito con fondo blanco, borde 2px dashed y padding 20px ---
+        panelDerecho = new RoundedPanel(12, BLANCO, BORDE) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                
+                // Borde dashed de 2px en modo claro
+                if (!Main.isDarkMode) {
+                    g2.setColor(ThemeManager.GRIS_CLARO);
+                    float[] dash = {6f, 6f};
+                    g2.setStroke(new BasicStroke(2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1.0f, dash, 0.0f));
+                    g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 12, 12);
+                } else {
+                    g2.setColor(BORDE);
+                    g2.setStroke(new BasicStroke(1.2f));
+                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
+                }
+                g2.dispose();
+            }
+        };
         panelDerecho.setLayout(new BorderLayout(15, 15));
-        panelDerecho.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 4, 0, 0, AZUL_POS), // Borde izquierdo azul
-            new EmptyBorder(20, 16, 20, 20)
-        ));
+        panelDerecho.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         // Cabecera del Carrito
         JPanel panelHeaderCart = new JPanel(new BorderLayout());
@@ -312,13 +331,20 @@ public class VentasFrame extends JPanel {
 
         JPanel panelMetodos = new JPanel(new GridLayout(1, 2, 10, 0));
         panelMetodos.setOpaque(false);
-        panelMetodos.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+        panelMetodos.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
 
-        // Método efectivo activo por defecto — azul POS
-        btnMetodoEfectivo = new PastelButton("💵 Efectivo", AZUL_POS, BLANCO, 12);
+        // Método efectivo activo por defecto — azul POS #1E88E5, height 60px
+        btnMetodoEfectivo = new PastelButton("💵 Efectivo", ThemeManager.AZUL_PRIMARIO, Color.WHITE, 8);
+        btnMetodoEfectivo.setPreferredSize(new Dimension(btnMetodoEfectivo.getPreferredSize().width, 60));
+        btnMetodoEfectivo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+        btnMetodoEfectivo.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnMetodoEfectivo.addActionListener(e -> setMetodoPago("Efectivo"));
 
-        btnMetodoTarjeta = new PastelButton("💳 Tarjeta", BLANCO, GRIS, 12);
+        // Método tarjeta — blanco inactivo, height 60px
+        btnMetodoTarjeta = new PastelButton("💳 Tarjeta", Color.WHITE, ThemeManager.GRIS_MEDIO, 8);
+        btnMetodoTarjeta.setPreferredSize(new Dimension(btnMetodoTarjeta.getPreferredSize().width, 60));
+        btnMetodoTarjeta.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+        btnMetodoTarjeta.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnMetodoTarjeta.setBorderColor(BORDE);
         btnMetodoTarjeta.addActionListener(e -> setMetodoPago("Tarjeta"));
 
@@ -353,6 +379,7 @@ public class VentasFrame extends JPanel {
             public void insertUpdate(javax.swing.event.DocumentEvent e) { calcularCambio(); }
             public void removeUpdate(javax.swing.event.DocumentEvent e) { calcularCambio(); }
             public void changedUpdate(javax.swing.event.DocumentEvent e) { calcularCambio(); }
+            private void filtrar() { calcularCambio(); }
         });
         panelEfectivoDetails.add(txtMontoRecibido, ec);
 
@@ -377,10 +404,11 @@ public class VentasFrame extends JPanel {
         panelSouthCart.add(sep3);
         panelSouthCart.add(Box.createRigidArea(new Dimension(0, 12)));
 
-        // Botón COBRAR — verde POS #27AE60, grande, texto blanco
-        PastelButton btnCobrar = new PastelButton("COBRAR", VERDE_PRINCIPAL, BLANCO, 12);
-        btnCobrar.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btnCobrar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+        // Botón COBRAR — verde POS #10B981, height 60px, font 16px bold, border radius 8px
+        PastelButton btnCobrar = new PastelButton("COBRAR", VERDE_PRINCIPAL, Color.WHITE, 8);
+        btnCobrar.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        btnCobrar.setPreferredSize(new Dimension(btnCobrar.getPreferredSize().width, 60));
+        btnCobrar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
         btnCobrar.addActionListener(e -> procesarCobro());
         panelSouthCart.add(btnCobrar);
 
@@ -395,14 +423,14 @@ public class VentasFrame extends JPanel {
 
         panelDerecho.add(panelSouthCart, BorderLayout.SOUTH);
 
-        // Agregar al GridBagLayout principal
+        // Agregar al GridBagLayout principal con proporción 60% / 40%
         gbc.gridx = 0;
-        gbc.weightx = 0.7;
+        gbc.weightx = 0.6;
         gbc.insets = new Insets(0, 0, 0, 15);
         panelContenedor.add(panelIzquierdo, gbc);
 
         gbc.gridx = 1;
-        gbc.weightx = 0.3;
+        gbc.weightx = 0.4;
         gbc.insets = new Insets(0, 0, 0, 0);
         panelContenedor.add(panelDerecho, gbc);
 
@@ -443,18 +471,18 @@ public class VentasFrame extends JPanel {
             btnMetodoEfectivo.setForeground(BLANCO);
             btnMetodoEfectivo.setBorderColor(null);
 
-            btnMetodoTarjeta.setBackground(BLANCO);
+            btnMetodoTarjeta.setBackground(Main.isDarkMode ? new Color(0x2D, 0x2D, 0x2D) : Color.WHITE);
             btnMetodoTarjeta.setForeground(GRIS);
             btnMetodoTarjeta.setBorderColor(BORDE);
 
             panelEfectivoDetails.setVisible(true);
             txtMontoRecibido.requestFocusInWindow();
         } else {
-            btnMetodoTarjeta.setBackground(AZUL_POS); // Azul POS activo
+            btnMetodoTarjeta.setBackground(new Color(155, 89, 182)); // Tarjeta #9B59B6 activa
             btnMetodoTarjeta.setForeground(BLANCO);
             btnMetodoTarjeta.setBorderColor(null);
 
-            btnMetodoEfectivo.setBackground(BLANCO);
+            btnMetodoEfectivo.setBackground(Main.isDarkMode ? new Color(0x2D, 0x2D, 0x2D) : Color.WHITE);
             btnMetodoEfectivo.setForeground(GRIS);
             btnMetodoEfectivo.setBorderColor(BORDE);
 
@@ -1166,6 +1194,8 @@ public class VentasFrame extends JPanel {
      * Fondo blanco, borde #E0E6ED, precios en verde #27AE60.
      */
     private class ProductoCardPanel extends RoundedPanel {
+        private boolean isHovered = false;
+
         public ProductoCardPanel(Producto producto) {
             super(12, Color.WHITE, BORDE); // Tarjeta blanca con borde #E0E6ED
             setLayout(new BorderLayout());
@@ -1204,7 +1234,7 @@ public class VentasFrame extends JPanel {
             lblName.setForeground(TEXTO_OSCURO);
             lblName.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-            // Precio en verde #27AE60 bold
+            // Precio en verde #10B981 bold
             JLabel lblPrice = new JLabel(String.format("$%.2f", producto.getPrecio()));
             lblPrice.setFont(new Font("Segoe UI", Font.BOLD, 14));
             lblPrice.setForeground(VERDE_PRINCIPAL); // Precio verde POS
@@ -1220,10 +1250,10 @@ public class VentasFrame extends JPanel {
                 lblStock.setForeground(VERDE_PRINCIPAL); // Verde stock OK
             } else if (stock >= 5) {
                 lblStock.setText("Stock: " + stock + " (Bajo)");
-                lblStock.setForeground(NARANJA_NOTA); // Naranja #F39C12
+                lblStock.setForeground(NARANJA_NOTA); // Naranja #F59E0B
             } else {
                 lblStock.setText("Stock: " + stock + " (Crítico)");
-                lblStock.setForeground(STOCK_BAJO); // Rojo #E74C3C
+                lblStock.setForeground(STOCK_BAJO); // Rojo #EF4444
             }
 
             panelInfo.add(lblName);
@@ -1234,13 +1264,25 @@ public class VentasFrame extends JPanel {
 
             add(panelInfo, BorderLayout.SOUTH);
 
-            // Doble clic agrega automáticamente al carrito
+            // Doble clic agrega automáticamente al carrito y maneja el hover
             MouseAdapter cardDoubleClickListener = new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     if (e.getClickCount() == 2) {
                         agregarAlCarrito(producto);
                     }
+                }
+                
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    isHovered = true;
+                    repaint();
+                }
+                
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    isHovered = false;
+                    repaint();
                 }
             };
             this.addMouseListener(cardDoubleClickListener);
@@ -1249,6 +1291,35 @@ public class VentasFrame extends JPanel {
             lblName.addMouseListener(cardDoubleClickListener);
             lblPrice.addMouseListener(cardDoubleClickListener);
             lblStock.addMouseListener(cardDoubleClickListener);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
+            if (isHovered) {
+                // Sombra más fuerte al hacer hover
+                g2.setColor(new Color(0, 0, 0, 30));
+                g2.fillRoundRect(3, 3, getWidth() - 4, getHeight() - 4, 12, 12);
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth() - 3, getHeight() - 3, 12, 12);
+                
+                g2.setColor(ThemeManager.AZUL_PRIMARIO); // Borde azul primario
+                g2.setStroke(new BasicStroke(1.5f));
+                g2.drawRoundRect(0, 0, getWidth() - 4, getHeight() - 4, 12, 12);
+            } else {
+                // Sombra suave por defecto
+                g2.setColor(new Color(0, 0, 0, 15));
+                g2.fillRoundRect(2, 2, getWidth() - 3, getHeight() - 3, 12, 12);
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth() - 2, getHeight() - 2, 12, 12);
+                
+                g2.setColor(Main.isDarkMode ? new Color(60, 60, 60) : ThemeManager.GRIS_CLARO);
+                g2.setStroke(new BasicStroke(1.2f));
+                g2.drawRoundRect(0, 0, getWidth() - 3, getHeight() - 3, 12, 12);
+            }
+            g2.dispose();
         }
     }
 
@@ -1269,21 +1340,25 @@ public class VentasFrame extends JPanel {
             TEXTO_OSCURO = Color.WHITE;
             GRIS = new Color(170, 170, 170);
             BORDE = new Color(60, 60, 60);
+            AZUL_POS = ThemeManager.AZUL_PRIMARIO;
+            VERDE_PRINCIPAL = ThemeManager.EXITO;
         } else {
-            FONDO = new Color(0xF5, 0xF7, 0xFA);
-            BLANCO = Color.WHITE;
-            TEXTO_OSCURO = new Color(0x2C, 0x3E, 0x50);
-            GRIS = new Color(0x7F, 0x8C, 0x8D);
-            BORDE = new Color(0xE0, 0xE6, 0xED);
+            FONDO = ThemeManager.FONDO_PRINCIPAL;
+            BLANCO = ThemeManager.BLANCO;
+            TEXTO_OSCURO = ThemeManager.GRIS_OSCURO;
+            GRIS = ThemeManager.GRIS_MEDIO;
+            BORDE = ThemeManager.GRIS_CLARO;
+            AZUL_POS = ThemeManager.AZUL_PRIMARIO;
+            VERDE_PRINCIPAL = ThemeManager.EXITO;
         }
     }
 
     private void actualizarComponentesEstilos() {
-        Color fondo = Main.isDarkMode ? new Color(0x1E, 0x1E, 0x1E) : new Color(0xF5, 0xF7, 0xFA);
-        Color card = Main.isDarkMode ? new Color(0x2D, 0x2D, 0x2D) : Color.WHITE;
-        Color text = Main.isDarkMode ? Color.WHITE : new Color(0x2C, 0x3E, 0x50);
-        Color textGris = Main.isDarkMode ? new Color(170, 170, 170) : new Color(0x7F, 0x8C, 0x8D);
-        Color border = Main.isDarkMode ? new Color(60, 60, 60) : new Color(0xE0, 0xE6, 0xED);
+        Color fondo = Main.isDarkMode ? new Color(0x1E, 0x1E, 0x1E) : ThemeManager.FONDO_PRINCIPAL;
+        Color card = Main.isDarkMode ? new Color(0x2D, 0x2D, 0x2D) : ThemeManager.BLANCO;
+        Color text = Main.isDarkMode ? Color.WHITE : ThemeManager.GRIS_OSCURO;
+        Color textGris = Main.isDarkMode ? new Color(170, 170, 170) : ThemeManager.GRIS_MEDIO;
+        Color border = Main.isDarkMode ? new Color(60, 60, 60) : ThemeManager.GRIS_CLARO;
 
         setBackground(fondo);
 
@@ -1293,7 +1368,7 @@ public class VentasFrame extends JPanel {
             txtBuscar.setCaretColor(text);
             txtBuscar.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(border, 1, true),
-                BorderFactory.createEmptyBorder(4, 6, 4, 6)
+                BorderFactory.createEmptyBorder(12, 16, 12, 16)
             ));
         }
         if (txtMontoRecibido != null) {
@@ -1323,7 +1398,7 @@ public class VentasFrame extends JPanel {
             btnMetodoEfectivo.setBorderColor(metodoPagoSeleccionado.equals("Efectivo") ? null : border);
         }
         if (btnMetodoTarjeta != null) {
-            btnMetodoTarjeta.setBackground(metodoPagoSeleccionado.equals("Tarjeta") ? AZUL_POS : card);
+            btnMetodoTarjeta.setBackground(metodoPagoSeleccionado.equals("Tarjeta") ? new Color(155, 89, 182) : card);
             btnMetodoTarjeta.setForeground(metodoPagoSeleccionado.equals("Tarjeta") ? Color.WHITE : textGris);
             btnMetodoTarjeta.setBorderColor(metodoPagoSeleccionado.equals("Tarjeta") ? null : border);
         }

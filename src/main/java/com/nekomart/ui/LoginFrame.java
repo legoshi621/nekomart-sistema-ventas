@@ -1,37 +1,67 @@
 package com.nekomart.ui;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.geom.Path2D;
+import java.io.File;
+
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.Timer;
+
 import com.nekomart.Main;
 import com.nekomart.models.Usuario;
 import com.nekomart.services.AuthService;
 import com.nekomart.utils.SessionManager;
-import com.nekomart.utils.DisenoSystem;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Path2D;
-import java.io.File;
+import com.nekomart.utils.ThemeManager;
 
 /**
  * Pantalla de inicio de sesión (Login) con diseño POS profesional.
- * Gradiente azul de fondo (#4A90D9 → #357ABD) -> (AZUL_PRIMARIO -> AZUL_OSCURO), panel blanco con sombra,
- * logo grande (200x200px) o fallback de texto, campos estilizados y botón verde.
+ * Gradiente azul de fondo (#BBDEFB → #E3F2FD), panel blanco con sombra,
+ * logo grande (200x200px) o fallback de texto, campos estilizados y botón azul.
  * Incluye un botón para cambiar entre tema claro y oscuro de manera dinámica.
  * Todo el código está comentado en español.
  */
 public class LoginFrame extends JFrame {
 
-    // ── Colores de la paleta POS ─────────────────────────────────────────
-    private static final Color AZUL_POS = DisenoSystem.AZUL_PRIMARIO;        // #1E88E5 - Azul principal
-    private static final Color AZUL_POS_OSCURO = DisenoSystem.AZUL_OSCURO;   // #1565C0 - Azul oscuro gradiente
-    private static final Color VERDE_PRINCIPAL = DisenoSystem.AZUL_PRIMARIO; // #1E88E5 - Botón principal
-    private static final Color VERDE_HOVER = DisenoSystem.AZUL_OSCURO;       // Hover del botón principal
-    private static final Color TEXTO_OSCURO = DisenoSystem.GRIS_OSCURO;      // #1E293B - Texto principal
-    private static final Color TEXTO_GRIS = DisenoSystem.GRIS_MEDIO;         // #64748B - Texto secundario
-    private static final Color BORDE_CAMPO = DisenoSystem.GRIS_CLARO;        // #CBD5E1 - Borde campos
-    private static final Color FONDO_GENERAL = DisenoSystem.FONDO_PRINCIPAL; // #F8FAFC - Fondo general
+    // ── Colores de la paleta POS (usando ThemeManager) ──────────────────
+    private static final Color AZUL_PRIMARIO = ThemeManager.AZUL_PRIMARIO;        // #1E88E5 - Azul principal
+    private static final Color AZUL_OSCURO = ThemeManager.AZUL_OSCURO;            // #1565C0 - Hover botones
+    private static final Color AZUL_CLARO = ThemeManager.AZUL_CLARO;              // #87CEFA - Acentos
+    private static final Color AZUL_MUY_CLARO = ThemeManager.AZUL_MUY_CLARO;      // #E3F2FD - Fondos suaves
+    private static final Color GRIS_OSCURO = ThemeManager.GRIS_OSCURO;            // #1E293B - Texto principal
+    private static final Color GRIS_MEDIO = ThemeManager.GRIS_MEDIO;              // #64748B - Texto secundario
+    private static final Color GRIS_CLARO = ThemeManager.GRIS_CLARO;              // #CBD5E1 - Bordes
+    private static final Color GRIS_MUY_CLARO = ThemeManager.GRIS_MUY_CLARO;      // #F1F5F9 - Fondos secciones
+    private static final Color FONDO_PRINCIPAL = ThemeManager.FONDO_PRINCIPAL;    // #F8FAFC - Fondo general
+    private static final Color BLANCO = ThemeManager.BLANCO;                      // #FFFFFF - Tarjetas
 
     // ── Componentes de la interfaz ───────────────────────────────────────
     private JTextField txtUsuario;
@@ -111,7 +141,7 @@ public class LoginFrame extends JFrame {
      * Construye y organiza todos los componentes visuales del login.
      */
     private void initComponents() {
-        // ── Panel de fondo con gradiente azul POS (#4A90D9 → #357ABD) ────
+        // ── Panel de fondo con gradiente azul claro (#BBDEFB → #E3F2FD) ────
         panelFondo = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -126,10 +156,10 @@ public class LoginFrame extends JFrame {
                     );
                     g2.setPaint(gp);
                 } else {
-                    // Gradiente diagonal azul POS: #4A90D9 → #357ABD
+                    // Gradiente diagonal azul claro: #BBDEFB → #E3F2FD (135 grados)
                     GradientPaint gp = new GradientPaint(
-                            0, 0, AZUL_POS,
-                            getWidth(), getHeight(), AZUL_POS_OSCURO
+                            0, 0, new Color(187, 222, 251),  // #BBDEFB
+                            getWidth(), getHeight(), AZUL_MUY_CLARO  // #E3F2FD
                     );
                     g2.setPaint(gp);
                 }
@@ -168,10 +198,10 @@ public class LoginFrame extends JFrame {
             reaplicarTemaLogin();
         });
 
-        // ── Panel tipo tarjeta blanca con sombra suave ───────────────────
+        // ── Panel tipo tarjeta blanca con sombra suave (border radius 16px) ──
         panelCard = new ShadowPanel();
         panelCard.setLayout(new GridBagLayout());
-        panelCard.setBorder(BorderFactory.createEmptyBorder(30, 35, 30, 35));
+        panelCard.setBorder(BorderFactory.createEmptyBorder(40, 35, 40, 35));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -221,7 +251,7 @@ public class LoginFrame extends JFrame {
         // ── 2. Título "NekoMart" (fallback con emoji si no hay logo) ─────
         ImageIcon imgLogo = obtenerLogo();
         lblTitulo = new JLabel(imgLogo != null ? "NekoMart" : "🐱 NekoMart", SwingConstants.CENTER);
-        // Si no carga el logo, usar fuente bold 32px negro según requisitos
+        // Si no carga el logo, usar fuente bold 32px azul primario según requisitos
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, imgLogo != null ? 28 : 32));
         gbc.gridy = 1;
         gbc.insets = new Insets(2, 0, 0, 0);
@@ -229,25 +259,27 @@ public class LoginFrame extends JFrame {
 
         // ── 3. Subtítulo "Sistema de Ventas" ─────────────────────────────
         lblSubtitulo = new JLabel("Sistema de Ventas", SwingConstants.CENTER);
-        lblSubtitulo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblSubtitulo.setFont(ThemeManager.TEXTO_PEQUENO);
         gbc.gridy = 2;
         gbc.insets = new Insets(0, 0, 25, 0);
         panelCard.add(lblSubtitulo, gbc);
 
-        // ── 4. Campo de usuario (borde #E0E6ED, fondo blanco) ────────────
+        // ── 4. Campo de usuario (height 45px, border #CBD5E1, border radius 8px) ──
         txtUsuario = new JTextField(20);
         txtUsuario.putClientProperty("JTextField.placeholderText", "Nombre de usuario");
         txtUsuario.putClientProperty("JTextField.showClearButton", true);
-        txtUsuario.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtUsuario.setFont(ThemeManager.TEXTO_NORMAL);
+        txtUsuario.setPreferredSize(new Dimension(0, 45));
         gbc.gridy = 3;
         gbc.insets = new Insets(4, 0, 4, 0);
         panelCard.add(txtUsuario, gbc);
 
-        // ── 5. Campo de contraseña (borde #E0E6ED, fondo blanco) ─────────
+        // ── 5. Campo de contraseña (height 45px, border #CBD5E1, border radius 8px) ──
         txtPassword = new JPasswordField(20);
         txtPassword.putClientProperty("JTextField.placeholderText", "Contraseña");
         txtPassword.putClientProperty("JTextField.showRevealButton", true);
-        txtPassword.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtPassword.setFont(ThemeManager.TEXTO_NORMAL);
+        txtPassword.setPreferredSize(new Dimension(0, 45));
         gbc.gridy = 4;
         panelCard.add(txtPassword, gbc);
 
@@ -261,23 +293,23 @@ public class LoginFrame extends JFrame {
             }
         });
 
-        // ── 6. Botón "Iniciar Sesión" verde POS (#27AE60), bordes redondeados 8px ──
+        // ── 6. Botón "Iniciar Sesión" azul (#1E88E5), bordes redondeados 8px, font 16px bold ──
         btnIniciarSesion = new JButton("Iniciar Sesión") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                // Dibujar fondo redondeado (8px de arco) con color verde POS
+                // Dibujar fondo redondeado (8px de arco) con color azul primario
                 if (getModel().isRollover() || getModel().isPressed()) {
-                    g2.setColor(VERDE_HOVER);
+                    g2.setColor(AZUL_OSCURO);  // Hover: #1565C0
                 } else {
-                    g2.setColor(VERDE_PRINCIPAL);
+                    g2.setColor(AZUL_PRIMARIO);  // Normal: #1E88E5
                 }
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
 
                 // Dibujar texto centrado en blanco
-                g2.setColor(Color.WHITE);
+                g2.setColor(BLANCO);
                 g2.setFont(getFont());
                 FontMetrics fm = g2.getFontMetrics();
                 int x = (getWidth() - fm.stringWidth(getText())) / 2;
@@ -286,20 +318,20 @@ public class LoginFrame extends JFrame {
                 g2.dispose();
             }
         };
-        btnIniciarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btnIniciarSesion.setForeground(Color.WHITE);
+        btnIniciarSesion.setFont(ThemeManager.BOTON);  // 16px Bold
+        btnIniciarSesion.setForeground(BLANCO);
         btnIniciarSesion.setContentAreaFilled(false);
         btnIniciarSesion.setBorderPainted(false);
         btnIniciarSesion.setFocusPainted(false);
         btnIniciarSesion.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnIniciarSesion.setPreferredSize(new Dimension(0, 45));
+        btnIniciarSesion.setPreferredSize(new Dimension(0, 50));  // Height 50px
         gbc.gridy = 5;
         gbc.insets = new Insets(20, 0, 5, 0);
         panelCard.add(btnIniciarSesion, gbc);
 
         // ── 7. Botón "Salir" discreto ────────────────────────────────────
         btnSalir = new JButton("Salir");
-        btnSalir.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        btnSalir.setFont(ThemeManager.TEXTO_PEQUENO);
         btnSalir.setContentAreaFilled(false);
         btnSalir.setBorderPainted(false);
         btnSalir.setFocusPainted(false);
@@ -332,15 +364,15 @@ public class LoginFrame extends JFrame {
 
     /**
      * Adapta la apariencia de la pantalla según `Main.isDarkMode` esté activo.
-     * Usa la paleta POS: texto #2C3E50, bordes #E0E6ED, fondo blanco.
+     * Usa la paleta POS: texto #1E293B, bordes #CBD5E1, fondo blanco.
      */
     public void reaplicarTemaLogin() {
-        Color fgColor = Main.isDarkMode ? Color.WHITE : TEXTO_OSCURO;
-        Color textGris = Main.isDarkMode ? new Color(170, 170, 170) : TEXTO_GRIS;
-        Color bgField = Main.isDarkMode ? new Color(0x3D, 0x3D, 0x3D) : Color.WHITE;
-        Color borderField = Main.isDarkMode ? new Color(0x55, 0x55, 0x55) : BORDE_CAMPO;
+        Color fgColor = Main.isDarkMode ? BLANCO : GRIS_OSCURO;
+        Color textGris = Main.isDarkMode ? new Color(170, 170, 170) : GRIS_MEDIO;
+        Color bgField = Main.isDarkMode ? new Color(0x3D, 0x3D, 0x3D) : BLANCO;
+        Color borderField = Main.isDarkMode ? new Color(0x55, 0x55, 0x55) : GRIS_CLARO;
 
-        // Estilos para el campo Usuario (borde #E0E6ED, fondo blanco)
+        // Estilos para el campo Usuario (border radius 8px, border #CBD5E1)
         txtUsuario.setBackground(bgField);
         txtUsuario.setForeground(fgColor);
         txtUsuario.setCaretColor(fgColor);
@@ -349,7 +381,7 @@ public class LoginFrame extends JFrame {
                 BorderFactory.createEmptyBorder(10, 12, 10, 12)
         ));
 
-        // Estilos para el campo Password (borde #E0E6ED, fondo blanco)
+        // Estilos para el campo Password (border radius 8px, border #CBD5E1)
         txtPassword.setBackground(bgField);
         txtPassword.setForeground(fgColor);
         txtPassword.setCaretColor(fgColor);
@@ -358,17 +390,17 @@ public class LoginFrame extends JFrame {
                 BorderFactory.createEmptyBorder(10, 12, 10, 12)
         ));
 
-        // Título: negro si no carga logo, azul POS si carga logo
+        // Título: azul primario si carga logo, azul primario si no carga logo
         ImageIcon logo = obtenerLogo();
         if (logo != null) {
-            lblTitulo.setForeground(Main.isDarkMode ? Color.WHITE : AZUL_POS);
+            lblTitulo.setForeground(Main.isDarkMode ? BLANCO : AZUL_PRIMARIO);
         } else {
-            // "🐱 NekoMart" en negro, fuente bold 32px según requisitos
-            lblTitulo.setForeground(Main.isDarkMode ? Color.WHITE : Color.BLACK);
+            // "🐱 NekoMart" en azul primario, fuente bold 32px según requisitos
+            lblTitulo.setForeground(Main.isDarkMode ? BLANCO : AZUL_PRIMARIO);
         }
         lblSubtitulo.setForeground(textGris);
         btnSalir.setForeground(textGris);
-        btnTema.setForeground(Main.isDarkMode ? Color.WHITE : Color.WHITE); // Siempre blanco sobre fondo azul
+        btnTema.setForeground(BLANCO); // Siempre blanco sobre fondo azul
 
         // Repintar fondo y tarjeta
         panelFondo.repaint();
@@ -385,8 +417,8 @@ public class LoginFrame extends JFrame {
      * @param size Tamaño base del gatito
      */
     private void dibujarGatito(Graphics2D g2, int cx, int cy, int size) {
-        // Cara del gato (círculo principal) — azul POS
-        g2.setColor(AZUL_POS);
+        // Cara del gato (círculo principal) — azul primario
+        g2.setColor(AZUL_PRIMARIO);
         g2.fillOval(cx - size, cy - size + 5, size * 2, size * 2);
 
         // Oreja izquierda (triángulo)
@@ -405,8 +437,8 @@ public class LoginFrame extends JFrame {
         orejaDer.closePath();
         g2.fill(orejaDer);
 
-        // Interior de orejas (azul claro)
-        g2.setColor(DisenoSystem.AZUL_MUY_CLARO);
+        // Interior de orejas (azul muy claro)
+        g2.setColor(AZUL_MUY_CLARO);
         Path2D intIzq = new Path2D.Double();
         intIzq.moveTo(cx - size + 12, cy - size + 12);
         intIzq.lineTo(cx - size / 2 - 3, cy - size - 10);
@@ -422,19 +454,19 @@ public class LoginFrame extends JFrame {
         g2.fill(intDer);
 
         // Ojos (blancos con pupilas oscuras)
-        g2.setColor(Color.WHITE);
+        g2.setColor(BLANCO);
         g2.fillOval(cx - 16, cy - 8, 14, 14);
         g2.fillOval(cx + 2, cy - 8, 14, 14);
-        g2.setColor(TEXTO_OSCURO);
+        g2.setColor(GRIS_OSCURO);
         g2.fillOval(cx - 12, cy - 4, 7, 7);
         g2.fillOval(cx + 6, cy - 4, 7, 7);
         // Brillos en los ojos
-        g2.setColor(Color.WHITE);
+        g2.setColor(BLANCO);
         g2.fillOval(cx - 11, cy - 3, 3, 3);
         g2.fillOval(cx + 7, cy - 3, 3, 3);
 
-        // Nariz (triángulo verde principal)
-        g2.setColor(DisenoSystem.EXITO);
+        // Nariz (triángulo verde éxito)
+        g2.setColor(ThemeManager.EXITO);
         Path2D nariz = new Path2D.Double();
         nariz.moveTo(cx, cy + 4);
         nariz.lineTo(cx - 4, cy + 10);
@@ -443,14 +475,14 @@ public class LoginFrame extends JFrame {
         g2.fill(nariz);
 
         // Boca (dos líneas curvas)
-        g2.setColor(TEXTO_OSCURO);
+        g2.setColor(GRIS_OSCURO);
         g2.setStroke(new BasicStroke(1.5f));
         g2.drawArc(cx - 8, cy + 6, 8, 8, 0, -180);
         g2.drawArc(cx, cy + 6, 8, 8, 0, -180);
 
         // Bigotes (3 a cada lado)
         g2.setStroke(new BasicStroke(1.2f));
-        g2.setColor(TEXTO_GRIS);
+        g2.setColor(GRIS_MEDIO);
         // Izquierda
         g2.drawLine(cx - 18, cy + 4, cx - size - 8, cy);
         g2.drawLine(cx - 18, cy + 8, cx - size - 10, cy + 8);
@@ -514,7 +546,7 @@ public class LoginFrame extends JFrame {
     }
 
     /**
-     * Panel personalizado que dibuja una tarjeta con bordes redondeados (20px)
+     * Panel personalizado que dibuja una tarjeta con bordes redondeados (16px)
      * y sombra suave difuminada. Soporta animación de desplazamiento vertical y
      * color de fondo adaptable al tema.
      */
@@ -554,8 +586,8 @@ public class LoginFrame extends JFrame {
             int height = getHeight();
 
             // Dibujar sombra suave difuminada (múltiples capas semi-transparentes)
-            // En modo oscuro se hace una sombra mucho más tenue
-            int maxSombra = Main.isDarkMode ? 4 : 10;
+            // Sombra: 0 8px 32px rgba(0,0,0,0.12)
+            int maxSombra = Main.isDarkMode ? 4 : 12;
             for (int i = 0; i < 8; i++) {
                 int alpha = Math.max(0, maxSombra - i);
                 g2.setColor(new Color(0, 0, 0, alpha));
@@ -563,8 +595,9 @@ public class LoginFrame extends JFrame {
             }
 
             // Dibujar fondo de la tarjeta: blanco (claro) o gris oscuro (oscuro)
-            g2.setColor(Main.isDarkMode ? new Color(0x2D, 0x2D, 0x2D) : Color.WHITE);
-            g2.fillRoundRect(6, 6, width - 12, height - 12, 20, 20);
+            // Border radius: 16px
+            g2.setColor(Main.isDarkMode ? new Color(0x2D, 0x2D, 0x2D) : BLANCO);
+            g2.fillRoundRect(6, 6, width - 12, height - 12, 16, 16);
 
             g2.dispose();
         }

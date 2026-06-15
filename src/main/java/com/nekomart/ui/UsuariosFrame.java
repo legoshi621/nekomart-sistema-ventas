@@ -2,6 +2,7 @@ package com.nekomart.ui;
 
 import com.nekomart.services.UsuarioService;
 import com.nekomart.models.Usuario;
+import com.nekomart.utils.ThemeManager;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -30,18 +31,22 @@ import java.util.List;
  */
 public class UsuariosFrame extends JPanel {
 
-    // ── Colores de la paleta pastel ──────────────────────────────────────
-    private static final Color LAVANDA = new Color(184, 169, 232);
-    private static final Color LAVANDA_CLARO = new Color(212, 196, 240);
-    private static final Color MENTA = new Color(168, 230, 207);
-    private static final Color CORAL = new Color(255, 139, 148);
-    private static final Color FONDO = new Color(250, 250, 250);
-    private static final Color TEXTO_OSCURO = new Color(45, 55, 72);
-    private static final Color TEXTO_GRIS = new Color(113, 128, 150);
-    private static final Color BORDE = new Color(226, 232, 240);
-    private static final Color FILA_ALTERNA = new Color(247, 250, 252);
-    private static final Color HOVER_LAVANDA = new Color(240, 235, 255);
-    private static final Color VERDE_OSCURO = new Color(39, 103, 73);
+    // ── Colores de la paleta centralizada usando ThemeManager ────────────────
+    private static final Color LAVANDA = ThemeManager.AZUL_PRIMARIO;
+    private static final Color LAVANDA_CLARO = ThemeManager.AZUL_MUY_CLARO;
+    private static final Color MENTA = ThemeManager.EXITO;
+    private static final Color CORAL = ThemeManager.AZUL_PRIMARIO;
+    private static final Color FONDO = ThemeManager.FONDO_PRINCIPAL;
+    private static final Color TEXTO_OSCURO = ThemeManager.GRIS_OSCURO;
+    private static final Color TEXTO_GRIS = ThemeManager.GRIS_MEDIO;
+    private static final Color BORDE = ThemeManager.GRIS_CLARO;
+    private static final Color FILA_ALTERNA = ThemeManager.FONDO_PRINCIPAL;
+    private static final Color HOVER_LAVANDA = ThemeManager.AZUL_MUY_CLARO;
+    private static final Color VERDE_OSCURO = ThemeManager.EXITO;
+
+    // Badges de Rol
+    private static final Color BADGE_ADMIN_BG = new Color(155, 89, 182); // #9B59B6
+    private static final Color BADGE_EMPLEADO_BG = new Color(26, 188, 156); // #1ABC9C
 
     // ── DAO y componentes de la tabla ─────────────────────────────────────
     private UsuarioService usuarioService;
@@ -71,16 +76,16 @@ public class UsuariosFrame extends JPanel {
         JPanel panelSuperior = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
         panelSuperior.setOpaque(false);
 
-        JButton btnNuevo = crearBotonPastel("👤 Nuevo Usuario", CORAL, Color.WHITE);
+        JButton btnNuevo = crearBotonPastel("👤 Nuevo Usuario", ThemeManager.AZUL_PRIMARIO, Color.WHITE);
         btnNuevo.setToolTipText("Crear un nuevo usuario");
 
-        JButton btnEditar = crearBotonPastel("✏️ Editar", LAVANDA, Color.WHITE);
+        JButton btnEditar = crearBotonPastel("✏️ Editar", ThemeManager.AZUL_PRIMARIO, Color.WHITE);
         btnEditar.setToolTipText("Editar el usuario seleccionado");
 
-        JButton btnEliminar = crearBotonPastel("🗑️ Eliminar", new Color(252, 129, 129), Color.WHITE);
+        JButton btnEliminar = crearBotonPastel("🗑️ Eliminar", ThemeManager.PELIGRO, Color.WHITE);
         btnEliminar.setToolTipText("Eliminar el usuario seleccionado");
 
-        JButton btnRefrescar = crearBotonPastel("🔄 Refrescar", LAVANDA_CLARO, TEXTO_OSCURO);
+        JButton btnRefrescar = crearBotonPastel("🔄 Refrescar", ThemeManager.AZUL_MUY_CLARO, ThemeManager.GRIS_OSCURO);
         btnRefrescar.setToolTipText("Recargar la lista de usuarios");
 
         panelSuperior.add(btnNuevo);
@@ -107,7 +112,7 @@ public class UsuariosFrame extends JPanel {
         tablaUsuarios = new JTable(modeloTabla);
         tablaUsuarios.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tablaUsuarios.setAutoCreateRowSorter(true);
-        tablaUsuarios.setRowHeight(55); // Altura para acomodar fotos circulares
+        tablaUsuarios.setRowHeight(48); // Altura para acomodar fotos circulares
         tablaUsuarios.setShowGrid(false);
         tablaUsuarios.setIntercellSpacing(new Dimension(0, 0));
         tablaUsuarios.setFont(new Font("Segoe UI", Font.PLAIN, 13));
@@ -115,12 +120,12 @@ public class UsuariosFrame extends JPanel {
         tablaUsuarios.setSelectionBackground(HOVER_LAVANDA);
         tablaUsuarios.setSelectionForeground(TEXTO_OSCURO);
 
-        // Estilo del header (fondo lavanda, texto blanco)
+        // Estilo del header (fondo #F1F5F9, texto #1E293B 14px bold)
         JTableHeader header = tablaUsuarios.getTableHeader();
-        header.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        header.setBackground(LAVANDA);
-        header.setForeground(Color.WHITE);
-        header.setPreferredSize(new Dimension(0, 40));
+        header.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        header.setBackground(ThemeManager.GRIS_MUY_CLARO);
+        header.setForeground(ThemeManager.GRIS_OSCURO);
+        header.setPreferredSize(new Dimension(0, 48));
         header.setOpaque(true);
         header.setBorder(BorderFactory.createEmptyBorder());
 
@@ -214,7 +219,8 @@ public class UsuariosFrame extends JPanel {
         btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btn.setBackground(bgColor);
         btn.setForeground(fgColor);
-        btn.setBorderPainted(false);
+        btn.setBorderPainted(true);
+        btn.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
         btn.setFocusPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.putClientProperty("JButton.buttonType", "roundRect");
@@ -297,14 +303,32 @@ public class UsuariosFrame extends JPanel {
                 BorderFactory.createEmptyBorder(15, 15, 15, 15)
         ));
 
-        // Contenedor de imagen con fondo suave
-        JLabel lblFoto = new JLabel("Sin foto", SwingConstants.CENTER);
-        lblFoto.setPreferredSize(new Dimension(220, 220));
-        lblFoto.setMinimumSize(new Dimension(220, 220));
-        lblFoto.setOpaque(true);
-        lblFoto.setBackground(FILA_ALTERNA);
+        // Contenedor de imagen circular (80x80px con borde de 2px #E2E8F0)
+        JLabel lblFoto = new JLabel("Sin foto", SwingConstants.CENTER) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                int size = 80;
+                int x = (getWidth() - size) / 2;
+                int y = (getHeight() - size) / 2;
+                g2.setColor(com.nekomart.Main.isDarkMode ? new Color(0x2D, 0x2D, 0x2D) : Color.WHITE);
+                g2.fillOval(x, y, size, size);
+                Shape oldClip = g2.getClip();
+                Shape clip = new Ellipse2D.Double(x, y, size, size);
+                g2.setClip(clip);
+                super.paintComponent(g2);
+                g2.setClip(oldClip);
+                g2.setColor(new Color(226, 232, 240));
+                g2.setStroke(new BasicStroke(2f));
+                g2.drawOval(x, y, size, size);
+                g2.dispose();
+            }
+        };
+        lblFoto.setPreferredSize(new Dimension(80, 80));
+        lblFoto.setMinimumSize(new Dimension(80, 80));
+        lblFoto.setOpaque(false);
         lblFoto.setForeground(TEXTO_GRIS);
-        lblFoto.setBorder(BorderFactory.createLineBorder(BORDE, 1, true));
 
         // Ruta de foto actual
         final String[] fotoRuta = {usuario != null ? usuario.getFotoRuta() : null};
@@ -322,7 +346,10 @@ public class UsuariosFrame extends JPanel {
         panelBotonesFoto.add(btnSeleccionarFoto);
         panelBotonesFoto.add(btnQuitarFoto);
 
-        panelFoto.add(lblFoto, BorderLayout.CENTER);
+        JPanel wrapperFoto = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 40));
+        wrapperFoto.setOpaque(false);
+        wrapperFoto.add(lblFoto);
+        panelFoto.add(wrapperFoto, BorderLayout.CENTER);
         panelFoto.add(panelBotonesFoto, BorderLayout.SOUTH);
 
         // Evento: seleccionar foto
@@ -480,8 +507,8 @@ public class UsuariosFrame extends JPanel {
         if (f.exists()) {
             ImageIcon icon = new ImageIcon(f.getAbsolutePath());
             Image img = icon.getImage().getScaledInstance(
-                    label.getPreferredSize().width - 10,
-                    label.getPreferredSize().height - 10,
+                    80,
+                    80,
                     Image.SCALE_SMOOTH);
             label.setIcon(new ImageIcon(img));
             label.setText("");
@@ -573,7 +600,7 @@ public class UsuariosFrame extends JPanel {
                 File f = new File(ruta);
                 if (f.exists()) {
                     ImageIcon icon = new ImageIcon(f.getAbsolutePath());
-                    foto = icon.getImage().getScaledInstance(42, 42, Image.SCALE_SMOOTH);
+                    foto = icon.getImage().getScaledInstance(36, 36, Image.SCALE_SMOOTH);
                     tieneFoto = true;
                 }
             }
@@ -610,7 +637,7 @@ public class UsuariosFrame extends JPanel {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            int size = 42;
+            int size = 36;
             int x = (getWidth() - size) / 2;
             int y = (getHeight() - size) / 2;
 
@@ -632,7 +659,7 @@ public class UsuariosFrame extends JPanel {
 
                 // Iniciales centradas
                 g2.setColor(Color.WHITE);
-                g2.setFont(new Font("Segoe UI", Font.BOLD, 16));
+                g2.setFont(new Font("Segoe UI", Font.BOLD, 14));
                 FontMetrics fm = g2.getFontMetrics();
                 int tx = x + (size - fm.stringWidth(iniciales)) / 2;
                 int ty = y + (size + fm.getAscent() - fm.getDescent()) / 2;
@@ -645,8 +672,8 @@ public class UsuariosFrame extends JPanel {
 
     /**
      * Renderer para la columna de rol que muestra un badge con color.
-     * - ADMIN: fondo lavanda (#B8A9E8), texto blanco
-     * - EMPLEADO: fondo menta (#A8E6CF), texto verde oscuro
+     * - ADMIN: fondo lavanda (#9B59B6), texto blanco
+     * - EMPLEADO: fondo menta (#1ABC9C), texto blanco
      */
     private class RolBadgeRenderer extends JPanel implements TableCellRenderer {
         private String rol = "";
@@ -683,26 +710,24 @@ public class UsuariosFrame extends JPanel {
 
             // Determinar colores del badge según el rol
             Color badgeBg;
-            Color badgeFg;
+            Color badgeFg = Color.WHITE;
             if (rol.equalsIgnoreCase("ADMIN")) {
-                badgeBg = LAVANDA;
-                badgeFg = Color.WHITE;
+                badgeBg = BADGE_ADMIN_BG;
             } else {
-                badgeBg = MENTA;
-                badgeFg = VERDE_OSCURO;
+                badgeBg = BADGE_EMPLEADO_BG;
             }
 
             // Dibujar badge pill (redondeado)
             g2.setFont(new Font("Segoe UI", Font.BOLD, 11));
             FontMetrics fm = g2.getFontMetrics();
             int textW = fm.stringWidth(rol);
-            int badgeW = textW + 20;
-            int badgeH = 24;
+            int badgeW = textW + 24; // padding 12px each side => +24
+            int badgeH = 20; // height 20px
             int bx = 10;
             int by = (getHeight() - badgeH) / 2;
 
             g2.setColor(badgeBg);
-            g2.fillRoundRect(bx, by, badgeW, badgeH, 12, 12);
+            g2.fillRoundRect(bx, by, badgeW, badgeH, 4, 4); // border radius 4px
 
             g2.setColor(badgeFg);
             int tx = bx + (badgeW - textW) / 2;
@@ -710,6 +735,46 @@ public class UsuariosFrame extends JPanel {
             g2.drawString(rol, tx, ty);
 
             g2.dispose();
+        }
+    }
+
+    @Override
+    public void updateUI() {
+        super.updateUI();
+        reaplicarTemaUsuarios();
+    }
+
+    public void reaplicarTemaUsuarios() {
+        Color fondo = com.nekomart.Main.isDarkMode ? new Color(0x1E, 0x1E, 0x1E) : FONDO;
+        Color card = com.nekomart.Main.isDarkMode ? new Color(0x2D, 0x2D, 0x2D) : Color.WHITE;
+        Color textClaro = com.nekomart.Main.isDarkMode ? Color.WHITE : TEXTO_OSCURO;
+        Color selectionBg = com.nekomart.Main.isDarkMode ? new Color(70, 60, 100) : HOVER_LAVANDA;
+        Color border = com.nekomart.Main.isDarkMode ? new Color(60, 60, 60) : BORDE;
+
+        setBackground(fondo);
+        if (tablaUsuarios != null) {
+            tablaUsuarios.setForeground(textClaro);
+            tablaUsuarios.setSelectionBackground(selectionBg);
+            tablaUsuarios.setSelectionForeground(com.nekomart.Main.isDarkMode ? Color.WHITE : ThemeManager.GRIS_OSCURO);
+            
+            JTableHeader header = tablaUsuarios.getTableHeader();
+            if (header != null) {
+                header.setBackground(com.nekomart.Main.isDarkMode ? card : ThemeManager.GRIS_MUY_CLARO);
+                header.setForeground(com.nekomart.Main.isDarkMode ? Color.WHITE : ThemeManager.GRIS_OSCURO);
+            }
+        }
+        
+        actualizarComponentesHijos(this, fondo, card, textClaro, border);
+    }
+
+    private void actualizarComponentesHijos(Component comp, Color fondo, Color card, Color textClaro, Color border) {
+        if (comp instanceof JScrollPane) {
+            ((JScrollPane) comp).getViewport().setBackground(card);
+        }
+        if (comp instanceof Container) {
+            for (Component child : ((Container) comp).getComponents()) {
+                actualizarComponentesHijos(child, fondo, card, textClaro, border);
+            }
         }
     }
 }

@@ -7,6 +7,7 @@ import com.nekomart.models.Movimiento;
 import com.nekomart.models.Producto;
 import com.nekomart.services.ProductoService;
 import com.nekomart.utils.SessionManager;
+import com.nekomart.utils.ThemeManager;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -32,23 +33,23 @@ import java.util.List;
  */
 public class InventarioFrame extends JPanel {
 
-    // ── Colores de la paleta pastel ──────────────────────────────────────
-    private static final Color LAVANDA = new Color(184, 169, 232);
-    private static final Color LAVANDA_CLARO = new Color(212, 196, 240);
-    private static final Color CORAL = new Color(255, 139, 148);
-    private static final Color CORAL_HOVER = new Color(255, 107, 116);
-    private static final Color FONDO = new Color(250, 250, 250);
-    private static final Color TEXTO_OSCURO = new Color(45, 55, 72);
-    private static final Color TEXTO_GRIS = new Color(113, 128, 150);
-    private static final Color BORDE = new Color(226, 232, 240);
-    private static final Color FILA_ALTERNA = new Color(247, 250, 252);
-    private static final Color HOVER_LAVANDA = new Color(240, 235, 255);
-    private static final Color STOCK_BAJO_BG = new Color(254, 215, 215);
-    private static final Color STOCK_BAJO_TEXT = new Color(197, 48, 48);
-    private static final Color STOCK_BAJO_BORDE = new Color(252, 129, 129);
-    private static final Color CADUCIDAD_BG = new Color(255, 237, 213);
-    private static final Color CADUCIDAD_TEXT = new Color(146, 100, 22);
-    private static final Color MENTA = new Color(168, 230, 207);
+    // ── Colores de la paleta centralizada usando ThemeManager ────────────────
+    private static final Color LAVANDA = ThemeManager.AZUL_PRIMARIO;
+    private static final Color LAVANDA_CLARO = ThemeManager.AZUL_MUY_CLARO;
+    private static final Color CORAL = ThemeManager.AZUL_PRIMARIO;
+    private static final Color CORAL_HOVER = ThemeManager.AZUL_OSCURO;
+    private static final Color FONDO = ThemeManager.FONDO_PRINCIPAL;
+    private static final Color TEXTO_OSCURO = ThemeManager.GRIS_OSCURO;
+    private static final Color TEXTO_GRIS = ThemeManager.GRIS_MEDIO;
+    private static final Color BORDE = ThemeManager.GRIS_CLARO;
+    private static final Color FILA_ALTERNA = ThemeManager.FONDO_PRINCIPAL;
+    private static final Color HOVER_LAVANDA = ThemeManager.AZUL_MUY_CLARO;
+    private static final Color STOCK_BAJO_BG = new Color(254, 226, 226); // #FEE2E2
+    private static final Color STOCK_BAJO_TEXT = ThemeManager.PELIGRO; // #EF4444
+    private static final Color STOCK_BAJO_BORDE = ThemeManager.PELIGRO;
+    private static final Color CADUCIDAD_BG = new Color(254, 243, 199); // #FEF3C7
+    private static final Color CADUCIDAD_TEXT = ThemeManager.ADVERTENCIA; // #F59E0B
+    private static final Color MENTA = ThemeManager.EXITO; // #10B981
 
     // ── Servicio, DAO y componentes de la tabla ──────────────────────────
     private ProductoService productoService;
@@ -91,41 +92,42 @@ public class InventarioFrame extends JPanel {
         txtBuscar.putClientProperty("JTextField.placeholderText", "Buscar por nombre o código...");
         txtBuscar.putClientProperty("JTextField.showClearButton", true);
         txtBuscar.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtBuscar.setPreferredSize(new Dimension(280, 45));
         txtBuscar.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(BORDE, 1, true),
-                BorderFactory.createEmptyBorder(8, 10, 8, 10)
+                BorderFactory.createEmptyBorder(10, 12, 10, 12)
         ));
 
         // Botón buscar
-        JButton btnBuscar = crearBotonPastel("Buscar", LAVANDA, Color.WHITE);
+        JButton btnBuscar = crearBotonPastel("Buscar", ThemeManager.AZUL_PRIMARIO, Color.WHITE);
         btnBuscar.setToolTipText("Buscar productos por código o nombre");
 
         // Botón nuevo producto
-        JButton btnNuevo = crearBotonPastel("➕ Nuevo", CORAL, Color.WHITE);
+        JButton btnNuevo = crearBotonPastel("➕ Nuevo", ThemeManager.AZUL_PRIMARIO, Color.WHITE);
         btnNuevo.setToolTipText("Registrar un nuevo producto en el inventario");
 
         // Botón editar producto seleccionado
-        JButton btnEditar = crearBotonPastel("✏️ Editar", LAVANDA, Color.WHITE);
+        JButton btnEditar = crearBotonPastel("✏️ Editar", ThemeManager.AZUL_PRIMARIO, Color.WHITE);
         btnEditar.setToolTipText("Editar el producto seleccionado");
 
         // Botón entrada de stock (nueva mercancía)
-        JButton btnEntradaStock = crearBotonPastel("📥 Entrada de Stock", MENTA, TEXTO_OSCURO);
+        JButton btnEntradaStock = crearBotonPastel("📥 Entrada de Stock", ThemeManager.EXITO, Color.WHITE);
         btnEntradaStock.setToolTipText("Registrar entrada de mercancía al inventario");
 
         // Botón eliminar
-        JButton btnEliminar = crearBotonPastel("🗑️ Eliminar", new Color(252, 129, 129), Color.WHITE);
+        JButton btnEliminar = crearBotonPastel("🗑️ Eliminar", ThemeManager.PELIGRO, Color.WHITE);
         btnEliminar.setToolTipText("Eliminar el producto seleccionado");
 
         // Botón ver Kardex
-        JButton btnKardex = crearBotonPastel("📋 Kardex", new Color(255, 183, 77), TEXTO_OSCURO);
+        JButton btnKardex = crearBotonPastel("📋 Kardex", ThemeManager.ADVERTENCIA, Color.WHITE);
         btnKardex.setToolTipText("Ver historial de movimientos del producto seleccionado");
 
         // Botón refrescar
-        JButton btnRefrescar = crearBotonPastel("🔄 Refrescar", LAVANDA_CLARO, TEXTO_OSCURO);
+        JButton btnRefrescar = crearBotonPastel("🔄 Refrescar", ThemeManager.AZUL_MUY_CLARO, ThemeManager.GRIS_OSCURO);
         btnRefrescar.setToolTipText("Recargar la lista de productos");
 
         // Botón exportar a Excel
-        JButton btnExportar = crearBotonPastel("📤 Exportar a Excel", new Color(168, 230, 207), TEXTO_OSCURO);
+        JButton btnExportar = crearBotonPastel("📤 Exportar a Excel", ThemeManager.EXITO, Color.WHITE);
         btnExportar.setToolTipText("Exportar inventario a archivo Excel (.xlsx)");
 
         panelSuperior.add(lblBuscar);
@@ -153,7 +155,7 @@ public class InventarioFrame extends JPanel {
         tablaProductos = new JTable(modeloTabla);
         tablaProductos.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tablaProductos.setAutoCreateRowSorter(true);
-        tablaProductos.setRowHeight(45);
+        tablaProductos.setRowHeight(48);
         tablaProductos.setShowGrid(false);
         tablaProductos.setIntercellSpacing(new Dimension(0, 0));
         tablaProductos.setFont(new Font("Segoe UI", Font.PLAIN, 13));
@@ -161,12 +163,12 @@ public class InventarioFrame extends JPanel {
         tablaProductos.setSelectionBackground(HOVER_LAVANDA);
         tablaProductos.setSelectionForeground(TEXTO_OSCURO);
 
-        // Estilo del header de la tabla (fondo lavanda, texto blanco)
+        // Estilo del header de la tabla (header background #F1F5F9, texto #1E293B 14px semibold)
         JTableHeader header = tablaProductos.getTableHeader();
-        header.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        header.setBackground(LAVANDA);
-        header.setForeground(Color.WHITE);
-        header.setPreferredSize(new Dimension(0, 40));
+        header.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        header.setBackground(ThemeManager.GRIS_MUY_CLARO);
+        header.setForeground(ThemeManager.GRIS_OSCURO);
+        header.setPreferredSize(new Dimension(0, 48));
         header.setOpaque(true);
         header.setBorder(BorderFactory.createEmptyBorder());
 
@@ -241,7 +243,8 @@ public class InventarioFrame extends JPanel {
         btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btn.setBackground(bgColor);
         btn.setForeground(fgColor);
-        btn.setBorderPainted(false);
+        btn.setBorderPainted(true);
+        btn.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
         btn.setFocusPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.putClientProperty("JButton.buttonType", "roundRect");
@@ -951,12 +954,12 @@ public class InventarioFrame extends JPanel {
         if (tablaProductos != null) {
             tablaProductos.setForeground(textClaro);
             tablaProductos.setSelectionBackground(selectionBg);
-            tablaProductos.setSelectionForeground(textClaro);
+            tablaProductos.setSelectionForeground(Main.isDarkMode ? Color.WHITE : ThemeManager.GRIS_OSCURO);
             
             JTableHeader header = tablaProductos.getTableHeader();
             if (header != null) {
-                header.setBackground(Main.isDarkMode ? card : LAVANDA);
-                header.setForeground(Color.WHITE);
+                header.setBackground(Main.isDarkMode ? card : ThemeManager.GRIS_MUY_CLARO);
+                header.setForeground(Main.isDarkMode ? Color.WHITE : ThemeManager.GRIS_OSCURO);
             }
         }
         if (txtBuscar != null) {
@@ -965,7 +968,7 @@ public class InventarioFrame extends JPanel {
             txtBuscar.setCaretColor(textClaro);
             txtBuscar.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(border, 1, true),
-                    BorderFactory.createEmptyBorder(8, 10, 8, 10)
+                    BorderFactory.createEmptyBorder(10, 12, 10, 12)
             ));
         }
         

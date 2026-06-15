@@ -178,3 +178,41 @@ WHERE NOT EXISTS (SELECT 1 FROM productos WHERE codigo = 'CHN019');
 INSERT INTO productos (codigo, nombre, precio, stock, stock_minimo, categoria, activo, fecha_caducidad, lote, imagen_ruta)
 SELECT 'CHN020', 'Organizador de Maquillaje Acrílico', 21.00, 15, 3, 'Accesorios', 1, date('now', '+22 months'), 'L2026020', 'https://images.unsplash.com/photo-1631730502808-9dd5a5e14061?w=400'
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE codigo = 'CHN020');
+
+-- 6. Tabla de Devoluciones
+CREATE TABLE IF NOT EXISTS devoluciones (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_venta INTEGER NOT NULL,
+    id_detalle_venta INTEGER NOT NULL,
+    cantidad INTEGER NOT NULL CHECK (cantidad > 0),
+    motivo TEXT NOT NULL,
+    tipo_reembolso TEXT NOT NULL CHECK (tipo_reembolso IN ('EFECTIVO', 'CREDITO')),
+    fecha TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id_admin INTEGER NOT NULL,
+    FOREIGN KEY (id_venta) REFERENCES ventas(id),
+    FOREIGN KEY (id_admin) REFERENCES usuarios(id)
+);
+
+-- 8. Tabla de Logs del Sistema (Auditoría)
+CREATE TABLE IF NOT EXISTS logs_sistema (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha_hora TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id_usuario INTEGER,
+    accion TEXT NOT NULL,
+    descripcion TEXT,
+    ip_maquina TEXT DEFAULT 'LOCAL'
+);
+
+-- 7. Tabla de Cortes de Caja
+CREATE TABLE IF NOT EXISTS cortes_caja (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha_apertura TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_cierre TEXT,
+    id_admin INTEGER NOT NULL,
+    monto_inicial REAL NOT NULL DEFAULT 0,
+    monto_esperado REAL DEFAULT 0,
+    monto_real REAL DEFAULT 0,
+    diferencia REAL DEFAULT 0,
+    estado TEXT NOT NULL DEFAULT 'ABIERTO' CHECK (estado IN ('ABIERTO', 'CERRADO')),
+    FOREIGN KEY (id_admin) REFERENCES usuarios(id)
+);
