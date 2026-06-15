@@ -5,8 +5,10 @@ import com.nekomart.dao.MovimientoDAO;
 import com.nekomart.dao.ProductoDAO;
 import com.nekomart.models.Movimiento;
 import com.nekomart.models.Producto;
+import com.nekomart.models.Usuario;
 import com.nekomart.services.ProductoService;
 import com.nekomart.utils.SessionManager;
+import com.nekomart.utils.ThemeManager;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -24,66 +26,61 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-/**
- * Panel de gestión de inventario con diseño pastel moderno.
- * Tabla con header lavanda, filas alternadas, hover sutil y alertas
- * visuales para productos con stock bajo (fondo rojo claro, borde izquierdo rojo).
- * Todo el código está comentado en español.
- */
 public class InventarioFrame extends JPanel {
 
-    // ── Colores de la paleta pastel ──────────────────────────────────────
-    private static final Color LAVANDA = new Color(184, 169, 232);
-    private static final Color LAVANDA_CLARO = new Color(212, 196, 240);
-    private static final Color CORAL = new Color(255, 139, 148);
-    private static final Color CORAL_HOVER = new Color(255, 107, 116);
-    private static final Color FONDO = new Color(250, 250, 250);
-    private static final Color TEXTO_OSCURO = new Color(45, 55, 72);
-    private static final Color TEXTO_GRIS = new Color(113, 128, 150);
-    private static final Color BORDE = new Color(226, 232, 240);
-    private static final Color FILA_ALTERNA = new Color(247, 250, 252);
-    private static final Color HOVER_LAVANDA = new Color(240, 235, 255);
-    private static final Color STOCK_BAJO_BG = new Color(254, 215, 215);
-    private static final Color STOCK_BAJO_TEXT = new Color(197, 48, 48);
-    private static final Color STOCK_BAJO_BORDE = new Color(252, 129, 129);
-    private static final Color CADUCIDAD_BG = new Color(255, 237, 213);
-    private static final Color CADUCIDAD_TEXT = new Color(146, 100, 22);
-    private static final Color MENTA = new Color(168, 230, 207);
+    private static final Color LAVANDA = ThemeManager.AZUL_PRIMARIO;
+    private static final Color LAVANDA_CLARO = ThemeManager.AZUL_MUY_CLARO;
+    private static final Color CORAL = ThemeManager.AZUL_PRIMARIO;
+    private static final Color CORAL_HOVER = ThemeManager.AZUL_OSCURO;
+    private static final Color FONDO = ThemeManager.FONDO_PRINCIPAL;
+    private static final Color TEXTO_OSCURO = ThemeManager.GRIS_OSCURO;
+    private static final Color TEXTO_GRIS = ThemeManager.GRIS_MEDIO;
+    private static final Color BORDE = ThemeManager.GRIS_CLARO;
+    private static final Color FILA_ALTERNA = ThemeManager.FONDO_PRINCIPAL;
+    private static final Color HOVER_LAVANDA = ThemeManager.AZUL_MUY_CLARO;
+    private static final Color STOCK_BAJO_BG = new Color(254, 226, 226);
+    private static final Color STOCK_BAJO_TEXT = ThemeManager.PELIGRO;
+    private static final Color STOCK_BAJO_BORDE = ThemeManager.PELIGRO;
+    private static final Color CADUCIDAD_BG = new Color(254, 243, 199);
+    private static final Color CADUCIDAD_TEXT = ThemeManager.ADVERTENCIA;
+    private static final Color MENTA = ThemeManager.EXITO;
 
-    // ── Servicio, DAO y componentes de la tabla ──────────────────────────
     private ProductoService productoService;
     private MovimientoDAO movimientoDAO;
     private ProductoDAO productoDAO;
     private JTable tablaProductos;
     private DefaultTableModel modeloTabla;
     private JTextField txtBuscar;
-
-    // Columnas de la tabla (incluye Lote y Caducidad)
-    private final String[] COLUMNAS = {"ID", "Código", "Nombre", "Precio", "Stock", "Stock Mín.", "Categoría", "Lote", "Caducidad"};
+private JButton btnNuevo, btnEditar, btnEliminar, btnEntradaStock, btnExportar;
+    // ← NUEVO: Columna "Imagen" agregada al inicio
+    private final String[] COLUMNAS = {"Imagen", "ID", "Código", "Nombre", "Precio", "Stock", "Stock Mín.", "Categoría", "Lote", "Caducidad"};
 
     public InventarioFrame() {
-        productoService = new ProductoService();
-        movimientoDAO = new MovimientoDAO();
-        productoDAO = new ProductoDAO();
-        setLayout(new BorderLayout(10, 10));
-        setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-        setBackground(FONDO);
+    productoService = new ProductoService();
+    movimientoDAO = new MovimientoDAO();
+    productoDAO = new ProductoDAO();
+    setLayout(new BorderLayout(10, 10));
+    setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+    setBackground(FONDO);
 
-        initComponents();
-        cargarProductos();
+    initComponents();
+    cargarProductos();
+    
+    // ← AGREGAR: Detectar rol y ocultar botones si es empleado
+    Usuario usuarioActual = SessionManager.getInstancia().getUsuarioActual();
+    if (usuarioActual != null && "EMPLEADO".equals(usuarioActual.getRol().toUpperCase())) {
+        // Ocultar botones de modificación
+        btnNuevo.setVisible(false);
+        btnEditar.setVisible(false);
+        btnEliminar.setVisible(false);
+        btnEntradaStock.setVisible(false);
+        btnExportar.setVisible(false);
     }
-
-    /**
-     * Inicializa los componentes visuales del panel de inventario.
-     */
+}
     private void initComponents() {
-        // ══════════════════════════════════════════════════════════════════
-        // PANEL SUPERIOR — Búsqueda y botones de acción
-        // ══════════════════════════════════════════════════════════════════
         JPanel panelSuperior = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
         panelSuperior.setOpaque(false);
 
-        // Campo de búsqueda estilizado
         JLabel lblBuscar = new JLabel("🔍");
         lblBuscar.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
 
@@ -91,69 +88,46 @@ public class InventarioFrame extends JPanel {
         txtBuscar.putClientProperty("JTextField.placeholderText", "Buscar por nombre o código...");
         txtBuscar.putClientProperty("JTextField.showClearButton", true);
         txtBuscar.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtBuscar.setPreferredSize(new Dimension(280, 45));
         txtBuscar.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(BORDE, 1, true),
-                BorderFactory.createEmptyBorder(8, 10, 8, 10)
+                BorderFactory.createEmptyBorder(10, 12, 10, 12)
         ));
-
-        // Botón buscar
-        JButton btnBuscar = crearBotonPastel("Buscar", LAVANDA, Color.WHITE);
-        btnBuscar.setToolTipText("Buscar productos por código o nombre");
-
-        // Botón nuevo producto
-        JButton btnNuevo = crearBotonPastel("➕ Nuevo", CORAL, Color.WHITE);
-        btnNuevo.setToolTipText("Registrar un nuevo producto en el inventario");
-
-        // Botón editar producto seleccionado
-        JButton btnEditar = crearBotonPastel("✏️ Editar", LAVANDA, Color.WHITE);
-        btnEditar.setToolTipText("Editar el producto seleccionado");
-
-        // Botón entrada de stock (nueva mercancía)
-        JButton btnEntradaStock = crearBotonPastel("📥 Entrada de Stock", MENTA, TEXTO_OSCURO);
-        btnEntradaStock.setToolTipText("Registrar entrada de mercancía al inventario");
-
-        // Botón eliminar
-        JButton btnEliminar = crearBotonPastel("🗑️ Eliminar", new Color(252, 129, 129), Color.WHITE);
-        btnEliminar.setToolTipText("Eliminar el producto seleccionado");
-
-        // Botón ver Kardex
-        JButton btnKardex = crearBotonPastel("📋 Kardex", new Color(255, 183, 77), TEXTO_OSCURO);
-        btnKardex.setToolTipText("Ver historial de movimientos del producto seleccionado");
-
-        // Botón refrescar
-        JButton btnRefrescar = crearBotonPastel("🔄 Refrescar", LAVANDA_CLARO, TEXTO_OSCURO);
-        btnRefrescar.setToolTipText("Recargar la lista de productos");
-
-        // Botón exportar a Excel
-        JButton btnExportar = crearBotonPastel("📤 Exportar a Excel", new Color(168, 230, 207), TEXTO_OSCURO);
-        btnExportar.setToolTipText("Exportar inventario a archivo Excel (.xlsx)");
-
+btnNuevo = crearBotonPastel("➕ Nuevo", ThemeManager.AZUL_PRIMARIO, Color.WHITE);
+btnEditar = crearBotonPastel("✏️ Editar", ThemeManager.AZUL_PRIMARIO, Color.WHITE);
+btnEliminar = crearBotonPastel("🗑️ Eliminar", ThemeManager.PELIGRO, Color.WHITE);
+btnEntradaStock = crearBotonPastel("📥 Entrada de Stock", ThemeManager.EXITO, Color.WHITE);
+btnExportar = crearBotonPastel("📤 Exportar a Excel", ThemeManager.EXITO, Color.WHITE);
         panelSuperior.add(lblBuscar);
         panelSuperior.add(txtBuscar);
-        panelSuperior.add(btnBuscar);
+       
         panelSuperior.add(Box.createHorizontalStrut(10));
         panelSuperior.add(btnNuevo);
         panelSuperior.add(btnEditar);
         panelSuperior.add(btnEntradaStock);
         panelSuperior.add(btnEliminar);
-        panelSuperior.add(btnKardex);
-        panelSuperior.add(btnRefrescar);
+       
         panelSuperior.add(btnExportar);
 
-        // ══════════════════════════════════════════════════════════════════
-        // TABLA DE PRODUCTOS — Con renderer personalizado para stock bajo
-        // ══════════════════════════════════════════════════════════════════
+        // ← NUEVO: Modelo con soporte para ImageIcon
         modeloTabla = new DefaultTableModel(COLUMNAS, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // La tabla no es editable directamente
+                return false;
+            }
+
+            @Override
+            public Class<?> getColumnClass(int column) {
+                if (column == 0) return ImageIcon.class; // ← Columna de imagen
+                if (column == 5 || column == 6) return Integer.class; // Stock y Stock Mín.
+                return String.class;
             }
         };
 
         tablaProductos = new JTable(modeloTabla);
         tablaProductos.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tablaProductos.setAutoCreateRowSorter(true);
-        tablaProductos.setRowHeight(45);
+        tablaProductos.setRowHeight(60); // ← Aumentado para mostrar imágenes
         tablaProductos.setShowGrid(false);
         tablaProductos.setIntercellSpacing(new Dimension(0, 0));
         tablaProductos.setFont(new Font("Segoe UI", Font.PLAIN, 13));
@@ -161,22 +135,25 @@ public class InventarioFrame extends JPanel {
         tablaProductos.setSelectionBackground(HOVER_LAVANDA);
         tablaProductos.setSelectionForeground(TEXTO_OSCURO);
 
-        // Estilo del header de la tabla (fondo lavanda, texto blanco)
         JTableHeader header = tablaProductos.getTableHeader();
-        header.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        header.setBackground(LAVANDA);
-        header.setForeground(Color.WHITE);
-        header.setPreferredSize(new Dimension(0, 40));
+        header.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        header.setBackground(ThemeManager.GRIS_MUY_CLARO);
+        header.setForeground(ThemeManager.GRIS_OSCURO);
+        header.setPreferredSize(new Dimension(0, 48));
         header.setOpaque(true);
         header.setBorder(BorderFactory.createEmptyBorder());
 
-        // Aplicar renderer personalizado para alertas de stock bajo
+        // ← NUEVO: Renderer para la columna de imagen
+        tablaProductos.getColumnModel().getColumn(0).setPreferredWidth(70);
+        tablaProductos.getColumnModel().getColumn(0).setMaxWidth(80);
+        tablaProductos.getColumnModel().getColumn(0).setCellRenderer(new ImageCellRenderer());
+
+        // Aplicar renderer personalizado para alertas (desde columna 1 en adelante)
         CustomTableCellRenderer renderer = new CustomTableCellRenderer();
-        for (int i = 0; i < tablaProductos.getColumnCount(); i++) {
+        for (int i = 1; i < tablaProductos.getColumnCount(); i++) {
             tablaProductos.getColumnModel().getColumn(i).setCellRenderer(renderer);
         }
 
-        // Panel contenedor con bordes redondeados para la tabla
         JPanel panelTabla = new JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -198,19 +175,13 @@ public class InventarioFrame extends JPanel {
         scrollPane.getViewport().setBackground(Color.WHITE);
         panelTabla.add(scrollPane, BorderLayout.CENTER);
 
-        // ══════════════════════════════════════════════════════════════════
-        // EVENTOS
-        // ══════════════════════════════════════════════════════════════════
-        btnBuscar.addActionListener(e -> buscarProductos());
         btnNuevo.addActionListener(e -> abrirDialogoProducto(null));
         btnEditar.addActionListener(e -> editarProductoSeleccionado());
         btnEntradaStock.addActionListener(e -> abrirDialogoEntradaStock());
         btnEliminar.addActionListener(e -> eliminarProductoSeleccionado());
-        btnKardex.addActionListener(e -> verKardexProducto());
-        btnRefrescar.addActionListener(e -> cargarProductos());
+       
         btnExportar.addActionListener(e -> exportarInventario());
 
-        // Doble clic para editar un producto
         tablaProductos.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -220,59 +191,93 @@ public class InventarioFrame extends JPanel {
             }
         });
 
-        // Enter en el campo de búsqueda para buscar
         txtBuscar.addActionListener(e -> buscarProductos());
 
-        // ── Organizar layout ─────────────────────────────────────────────
         add(panelSuperior, BorderLayout.NORTH);
         add(panelTabla, BorderLayout.CENTER);
     }
 
-    /**
-     * Crea un botón estilizado con colores pastel y bordes redondeados.
-     *
-     * @param texto  Texto del botón
-     * @param bgColor Color de fondo
-     * @param fgColor Color del texto
-     * @return Botón estilizado
-     */
+    // ← NUEVO: Renderer para mostrar imágenes en la tabla
+    private class ImageCellRenderer extends DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus,
+                                                       int row, int column) {
+            JLabel label = new JLabel();
+            label.setHorizontalAlignment(SwingConstants.CENTER);
+            label.setVerticalAlignment(SwingConstants.CENTER);
+            label.setOpaque(true);
+
+            if (isSelected) {
+                label.setBackground(HOVER_LAVANDA);
+            } else {
+                label.setBackground(row % 2 == 0 ? Color.WHITE : FILA_ALTERNA);
+            }
+
+            if (value instanceof ImageIcon) {
+                label.setIcon((ImageIcon) value);
+                label.setText("");
+            } else {
+                label.setIcon(null);
+                label.setText("📦");
+                label.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 20));
+            }
+
+            return label;
+        }
+    }
+
     private JButton crearBotonPastel(String texto, Color bgColor, Color fgColor) {
         JButton btn = new JButton(texto);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btn.setBackground(bgColor);
         btn.setForeground(fgColor);
-        btn.setBorderPainted(false);
+        btn.setBorderPainted(true);
+        btn.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
         btn.setFocusPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.putClientProperty("JButton.buttonType", "roundRect");
         return btn;
     }
 
-    /**
-     * Carga todos los productos en la tabla desde el servicio.
-     */
+    // ← MODIFICADO: Ahora carga imágenes
     private void cargarProductos() {
         modeloTabla.setRowCount(0);
         List<Producto> productos = productoService.obtenerTodos();
 
         for (Producto p : productos) {
             modeloTabla.addRow(new Object[]{
-                    p.getId(),
-                    p.getCodigo(),
-                    p.getNombre(),
-                    String.format("$%.2f", p.getPrecio()),
-                    p.getStock(),
-                    p.getStockMinimo(),
-                    p.getCategoria(),
-                    p.getLote() != null ? p.getLote() : "",
-                    p.getFechaCaducidad() != null ? p.getFechaCaducidad() : ""
+                    cargarImagenMiniatura(p.getImagenRuta()), // Columna 0: Imagen
+                    p.getId(),                                 // Columna 1: ID
+                    p.getCodigo(),                             // Columna 2: Código
+                    p.getNombre(),                             // Columna 3: Nombre
+                    String.format("$%.2f", p.getPrecio()),    // Columna 4: Precio
+                    p.getStock(),                              // Columna 5: Stock
+                    p.getStockMinimo(),                        // Columna 6: Stock Mín.
+                    p.getCategoria(),                          // Columna 7: Categoría
+                    p.getLote() != null ? p.getLote() : "",   // Columna 8: Lote
+                    p.getFechaCaducidad() != null ? p.getFechaCaducidad() : "" // Columna 9: Caducidad
             });
         }
     }
 
-    /**
-     * Busca productos según el texto ingresado en el campo de búsqueda.
-     */
+    // ← NUEVO: Método para cargar imagen en miniatura
+    private ImageIcon cargarImagenMiniatura(String ruta) {
+        if (ruta == null || ruta.isEmpty()) return null;
+        try {
+            File archivo = new File(ruta);
+            if (archivo.exists()) {
+                ImageIcon icon = new ImageIcon(archivo.getAbsolutePath());
+                Image img = icon.getImage().getScaledInstance(50, 50, Image.SCALE_SMOOTH);
+                return new ImageIcon(img);
+            }
+        } catch (Exception e) {
+            System.err.println("Error al cargar imagen: " + e.getMessage());
+        }
+        return null;
+    }
+
+    // ← MODIFICADO: Ahora carga imágenes
     private void buscarProductos() {
         String texto = txtBuscar.getText().trim();
         modeloTabla.setRowCount(0);
@@ -285,6 +290,7 @@ public class InventarioFrame extends JPanel {
         List<Producto> resultados = productoService.buscar(texto);
         for (Producto p : resultados) {
             modeloTabla.addRow(new Object[]{
+                    cargarImagenMiniatura(p.getImagenRuta()),
                     p.getId(),
                     p.getCodigo(),
                     p.getNombre(),
@@ -298,11 +304,6 @@ public class InventarioFrame extends JPanel {
         }
     }
 
-    /**
-     * Exporta el inventario actual a un archivo Excel (.xlsx).
-     * Abre un JFileChooser para que el usuario elija dónde guardar el archivo.
-     * Utiliza ExcelService para generar el Excel con formato profesional.
-     */
     private void exportarInventario() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Guardar Inventario como Excel");
@@ -312,10 +313,8 @@ public class InventarioFrame extends JPanel {
         int result = fileChooser.showSaveDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
             String ruta = fileChooser.getSelectedFile().getAbsolutePath();
-            // Asegurar extensión .xlsx
             if (!ruta.endsWith(".xlsx")) ruta += ".xlsx";
 
-            // Obtener todos los productos activos
             List<Producto> productos = productoService.obtenerTodos();
             com.nekomart.services.ExcelService excelService = new com.nekomart.services.ExcelService();
 
@@ -331,33 +330,11 @@ public class InventarioFrame extends JPanel {
         }
     }
 
-    /**
-     * Muestra de forma segura una imagen previsualizada en un JLabel.
-     *
-     * @param lbl  JLabel donde mostrar la imagen
-     * @param ruta Ruta de la imagen
-     */
     private void mostrarVistaPrevia(JLabel lbl, String ruta) {
-        if (ruta != null && !ruta.isEmpty()) {
-            File f = new File(ruta);
-            if (f.exists()) {
-                ImageIcon icon = new ImageIcon(f.getAbsolutePath());
-                Image scaled = icon.getImage().getScaledInstance(150, 150, Image.SCALE_SMOOTH);
-                lbl.setIcon(new ImageIcon(scaled));
-                lbl.setText("");
-                return;
-            }
-        }
-        lbl.setIcon(null);
-        lbl.setText("<html><center>Sin Vista<br>Previa</center></html>");
+        lbl.setText("");
+        com.nekomart.utils.ImageLoader.cargarImagenAsync(ruta, 150, 150, lbl);
     }
 
-    /**
-     * Abre un diálogo modal estilizado para crear o editar un producto.
-     * Diseño de doble columna: datos a la izquierda, imagen a la derecha.
-     *
-     * @param producto Producto a editar, o null para crear uno nuevo
-     */
     private void abrirDialogoProducto(Producto producto) {
         Window parentWindow = SwingUtilities.getWindowAncestor(this);
         JDialog dialog = new JDialog(parentWindow,
@@ -367,7 +344,6 @@ public class InventarioFrame extends JPanel {
         dialog.setLocationRelativeTo(parentWindow);
         dialog.setResizable(false);
 
-        // ── Panel de contenido principal (doble columna) ─────────────────
         JPanel panelContenido = new JPanel(new GridBagLayout());
         panelContenido.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 20));
         panelContenido.setBackground(FONDO);
@@ -375,7 +351,6 @@ public class InventarioFrame extends JPanel {
         gbc.fill = GridBagConstraints.BOTH;
         gbc.insets = new Insets(5, 5, 5, 5);
 
-        // ── COLUMNA IZQUIERDA: Formulario de datos ───────────────────────
         JPanel panelForm = new JPanel(new GridBagLayout());
         panelForm.setOpaque(false);
         panelForm.setBorder(BorderFactory.createCompoundBorder(
@@ -404,7 +379,6 @@ public class InventarioFrame extends JPanel {
         JTextField txtCategoria = new JTextField(producto != null ? producto.getCategoria() : "");
         txtCategoria.putClientProperty("JTextField.placeholderText", "Ej: Cuidado Facial");
 
-        // Agregar campos al formulario
         String[] etiquetas = {"Código:", "Nombre:", "Precio ($):", "Stock:", "Stock Mín.:", "Categoría:"};
         JTextField[] campos = {txtCodigo, txtNombre, txtPrecio, txtStock, txtStockMin, txtCategoria};
 
@@ -422,7 +396,6 @@ public class InventarioFrame extends JPanel {
             panelForm.add(campos[i], gbcForm);
         }
 
-        // ── COLUMNA DERECHA: Imagen del producto ─────────────────────────
         JPanel panelImgCol = new JPanel(new GridBagLayout());
         panelImgCol.setOpaque(false);
         panelImgCol.setBorder(BorderFactory.createCompoundBorder(
@@ -443,7 +416,6 @@ public class InventarioFrame extends JPanel {
 
         JButton btnSeleccionar = crearBotonPastel("📷 Seleccionar", LAVANDA, Color.WHITE);
 
-        // Cargar vista previa si el producto tiene imagen
         if (producto != null && producto.getImagenRuta() != null) {
             mostrarVistaPrevia(lblPreview, producto.getImagenRuta());
         } else {
@@ -457,7 +429,6 @@ public class InventarioFrame extends JPanel {
         gbcImg.gridy = 1;
         panelImgCol.add(btnSeleccionar, gbcImg);
 
-        // Agregar columnas al panel de contenido
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 0.65;
@@ -468,10 +439,8 @@ public class InventarioFrame extends JPanel {
         gbc.weightx = 0.35;
         panelContenido.add(panelImgCol, gbc);
 
-        // Almacenar archivo de imagen seleccionada
         final File[] archivoImagenSeleccionada = new File[1];
 
-        // Evento de seleccionar imagen
         btnSeleccionar.addActionListener(e -> {
             JFileChooser fc = new JFileChooser();
             fc.setDialogTitle("Seleccionar Imagen de Producto");
@@ -484,7 +453,6 @@ public class InventarioFrame extends JPanel {
             }
         });
 
-        // ── PANEL INFERIOR: Botones de acción y errores ──────────────────
         JPanel panelInferior = new JPanel(new BorderLayout());
         panelInferior.setBorder(BorderFactory.createEmptyBorder(0, 20, 15, 20));
         panelInferior.setBackground(FONDO);
@@ -505,12 +473,9 @@ public class InventarioFrame extends JPanel {
         panelInferior.add(lblError, BorderLayout.WEST);
         panelInferior.add(panelAcciones, BorderLayout.EAST);
 
-        // Evento cancelar
         btnCancelar.addActionListener(e -> dialog.dispose());
 
-        // Evento guardar
         btnGuardar.addActionListener(e -> {
-            // Limpiar indicadores de error
             txtCodigo.putClientProperty("JComponent.outline", null);
             txtNombre.putClientProperty("JComponent.outline", null);
             txtPrecio.putClientProperty("JComponent.outline", null);
@@ -574,7 +539,6 @@ public class InventarioFrame extends JPanel {
                 return;
             }
 
-            // Copiar imagen si se seleccionó una nueva
             String finalRutaImagen = producto != null ? producto.getImagenRuta() : null;
 
             if (archivoImagenSeleccionada[0] != null) {
@@ -596,7 +560,6 @@ public class InventarioFrame extends JPanel {
                 }
             }
 
-            // Guardar en base de datos
             Producto p = new Producto();
             if (producto != null) {
                 p.setId(producto.getId());
@@ -619,7 +582,6 @@ public class InventarioFrame extends JPanel {
             }
         });
 
-        // Integrar paneles al JDialog
         dialog.setLayout(new BorderLayout());
         dialog.add(panelContenido, BorderLayout.CENTER);
         dialog.add(panelInferior, BorderLayout.SOUTH);
@@ -628,14 +590,12 @@ public class InventarioFrame extends JPanel {
         dialog.setVisible(true);
     }
 
-    /**
-     * Edita el producto seleccionado en la tabla.
-     */
     private void editarProductoSeleccionado() {
         int fila = tablaProductos.getSelectedRow();
         if (fila >= 0) {
             int filaModelo = tablaProductos.convertRowIndexToModel(fila);
-            int id = (int) modeloTabla.getValueAt(filaModelo, 0);
+            // ← MODIFICADO: ID ahora está en columna 1
+            int id = (int) modeloTabla.getValueAt(filaModelo, 1);
             Producto producto = productoService.obtenerTodos().stream()
                     .filter(p -> p.getId() == id)
                     .findFirst()
@@ -646,9 +606,6 @@ public class InventarioFrame extends JPanel {
         }
     }
 
-    /**
-     * Elimina el producto seleccionado de la base de datos.
-     */
     private void eliminarProductoSeleccionado() {
         int fila = tablaProductos.getSelectedRow();
         if (fila < 0) {
@@ -658,8 +615,9 @@ public class InventarioFrame extends JPanel {
         }
 
         int filaModelo = tablaProductos.convertRowIndexToModel(fila);
-        int id = (int) modeloTabla.getValueAt(filaModelo, 0);
-        String nombre = (String) modeloTabla.getValueAt(filaModelo, 2);
+        // ← MODIFICADO: ID en columna 1, Nombre en columna 3
+        int id = (int) modeloTabla.getValueAt(filaModelo, 1);
+        String nombre = (String) modeloTabla.getValueAt(filaModelo, 3);
 
         int confirm = JOptionPane.showConfirmDialog(this,
                 "¿Estás seguro de eliminar el producto '" + nombre + "'?",
@@ -677,11 +635,6 @@ public class InventarioFrame extends JPanel {
         }
     }
 
-    /**
-     * Abre un diálogo para registrar una entrada de stock (mercancía nueva).
-     * Pide: Cantidad, Lote y Fecha de Caducidad.
-     * Al guardar, suma la cantidad al stock y registra el movimiento en el Kardex.
-     */
     private void abrirDialogoEntradaStock() {
         int fila = tablaProductos.getSelectedRow();
         if (fila < 0) {
@@ -691,10 +644,10 @@ public class InventarioFrame extends JPanel {
         }
 
         int filaModelo = tablaProductos.convertRowIndexToModel(fila);
-        int productoId = (int) modeloTabla.getValueAt(filaModelo, 0);
-        String nombreProducto = (String) modeloTabla.getValueAt(filaModelo, 2);
+        // ← MODIFICADO: ID en columna 1, Nombre en columna 3
+        int productoId = (int) modeloTabla.getValueAt(filaModelo, 1);
+        String nombreProducto = (String) modeloTabla.getValueAt(filaModelo, 3);
 
-        // Crear diálogo de entrada de stock
         Window parentWindow = SwingUtilities.getWindowAncestor(this);
         JDialog dialog = new JDialog(parentWindow,
                 "📥 Entrada de Stock — " + nombreProducto,
@@ -710,15 +663,12 @@ public class InventarioFrame extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(8, 5, 8, 5);
 
-        // Campo: Cantidad a ingresar
         JTextField txtCantidad = new JTextField();
         txtCantidad.putClientProperty("JTextField.placeholderText", "Ej: 50");
 
-        // Campo: Lote
         JTextField txtLote = new JTextField();
         txtLote.putClientProperty("JTextField.placeholderText", "Ej: LOTE-2026-06");
 
-        // Campo: Fecha de Caducidad
         JTextField txtFechaCad = new JTextField();
         txtFechaCad.putClientProperty("JTextField.placeholderText", "YYYY-MM-DD (Ej: 2027-01-15)");
 
@@ -739,7 +689,6 @@ public class InventarioFrame extends JPanel {
             panelContenido.add(campos[i], gbc);
         }
 
-        // Panel de botones
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         panelBotones.setBackground(FONDO);
 
@@ -748,7 +697,6 @@ public class InventarioFrame extends JPanel {
 
         btnCancelar.addActionListener(e -> dialog.dispose());
         btnGuardar.addActionListener(e -> {
-            // Validar cantidad
             String cantidadStr = txtCantidad.getText().trim();
             String lote = txtLote.getText().trim();
             String fechaCad = txtFechaCad.getText().trim();
@@ -769,9 +717,7 @@ public class InventarioFrame extends JPanel {
                 return;
             }
 
-            // Sumar stock al producto
             if (productoDAO.sumarStock(productoId, cantidad)) {
-                // Actualizar lote y fecha de caducidad del producto si se proporcionaron
                 Producto prod = productoDAO.buscarPorId(productoId);
                 if (prod != null) {
                     if (!lote.isEmpty()) prod.setLote(lote);
@@ -779,7 +725,6 @@ public class InventarioFrame extends JPanel {
                     productoDAO.actualizar(prod);
                 }
 
-                // Registrar movimiento en el Kardex
                 Movimiento mov = new Movimiento();
                 mov.setProductoId(productoId);
                 mov.setTipo("ENTRADA");
@@ -787,7 +732,6 @@ public class InventarioFrame extends JPanel {
                 mov.setFecha(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                         + " " + java.time.LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
 
-                // Obtener ID del usuario actual de la sesión
                 int usuarioId = 0;
                 if (SessionManager.getInstancia().getUsuarioActual() != null) {
                     usuarioId = SessionManager.getInstancia().getUsuarioActual().getId();
@@ -818,9 +762,6 @@ public class InventarioFrame extends JPanel {
         dialog.setVisible(true);
     }
 
-    /**
-     * Abre el diálogo Kardex para ver el historial de movimientos del producto seleccionado.
-     */
     private void verKardexProducto() {
         int fila = tablaProductos.getSelectedRow();
         if (fila < 0) {
@@ -830,20 +771,15 @@ public class InventarioFrame extends JPanel {
         }
 
         int filaModelo = tablaProductos.convertRowIndexToModel(fila);
-        int productoId = (int) modeloTabla.getValueAt(filaModelo, 0);
-        String nombreProducto = (String) modeloTabla.getValueAt(filaModelo, 2);
+        // ← MODIFICADO: ID en columna 1, Nombre en columna 3
+        int productoId = (int) modeloTabla.getValueAt(filaModelo, 1);
+        String nombreProducto = (String) modeloTabla.getValueAt(filaModelo, 3);
 
         Window parentWindow = SwingUtilities.getWindowAncestor(this);
         KardexFrame kardex = new KardexFrame(parentWindow, productoId, nombreProducto);
         kardex.setVisible(true);
     }
 
-    /**
-     * Verifica si una fecha de caducidad está próxima a vencer (dentro de 30 días).
-     *
-     * @param fechaCaducidad Fecha en formato YYYY-MM-DD
-     * @return true si la fecha está a 30 días o menos de la fecha actual
-     */
     private boolean esCaducidadProxima(String fechaCaducidad) {
         if (fechaCaducidad == null || fechaCaducidad.isEmpty()) return false;
         try {
@@ -856,18 +792,7 @@ public class InventarioFrame extends JPanel {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // RENDERER PERSONALIZADO PARA ALERTAS DE STOCK BAJO
-    // ══════════════════════════════════════════════════════════════════════
-
-    /**
-     * Renderer de celda personalizado que:
-     * - Pinta filas con stock bajo en fondo rojo claro (#FED7D7)
-     * - Pinta filas con caducidad próxima (≤30 días) en fondo naranja (#FFEDD5)
-     * - Agrega icono ⚠️ y texto rojo oscuro para stock bajo
-     * - Alterna colores blanco / #F7FAFC para filas normales
-     * - Aplica borde izquierdo rojo de 4px en filas con alerta
-     */
+    // ← MODIFICADO: Índices de columnas ajustados
     private class CustomTableCellRenderer extends DefaultTableCellRenderer {
 
         @Override
@@ -876,26 +801,23 @@ public class InventarioFrame extends JPanel {
                                                        int row, int column) {
             Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
-            // Obtener índice del modelo real (puede diferir si se ordena la tabla)
             int modelRow = table.convertRowIndexToModel(row);
 
-            // Leer stock y stock mínimo del modelo de datos
-            Object stockObj = table.getModel().getValueAt(modelRow, 4);
-            Object stockMinObj = table.getModel().getValueAt(modelRow, 5);
+            // ← MODIFICADO: Stock ahora es columna 5, Stock Mín. es columna 6
+            Object stockObj = table.getModel().getValueAt(modelRow, 5);
+            Object stockMinObj = table.getModel().getValueAt(modelRow, 6);
 
             int stock = 0;
             int stockMin = 0;
             try {
                 stock = Integer.parseInt(stockObj.toString());
                 stockMin = Integer.parseInt(stockMinObj.toString());
-            } catch (Exception e) {
-                // Ignorar errores de parseo
-            }
+            } catch (Exception e) {}
 
             boolean esStockBajo = stock <= stockMin;
 
-            // Verificar caducidad próxima (columna 8 = Caducidad)
-            Object caducidadObj = table.getModel().getValueAt(modelRow, 8);
+            // ← MODIFICADO: Caducidad ahora es columna 9
+            Object caducidadObj = table.getModel().getValueAt(modelRow, 9);
             String fechaCad = caducidadObj != null ? caducidadObj.toString() : "";
             boolean esCaducProxima = esCaducidadProxima(fechaCad);
 
@@ -906,11 +828,11 @@ public class InventarioFrame extends JPanel {
                 c.setBackground(Main.isDarkMode ? new Color(0x5C, 0x2D, 0x2D) : STOCK_BAJO_BG);
                 c.setForeground(Main.isDarkMode ? new Color(0xFE, 0xB2, 0xB2) : STOCK_BAJO_TEXT);
 
-                if (column == 1) {
+                if (column == 2) { // ← Código (antes 1, ahora 2)
                     setText("⚠️ " + (value != null ? value.toString() : ""));
                 }
 
-                if (column == 0) {
+                if (column == 1) { // ← ID (antes 0, ahora 1)
                     setBorder(BorderFactory.createCompoundBorder(
                             BorderFactory.createMatteBorder(0, 4, 0, 0, STOCK_BAJO_BORDE),
                             BorderFactory.createEmptyBorder(0, 8, 0, 8)
@@ -922,11 +844,11 @@ public class InventarioFrame extends JPanel {
                 c.setBackground(Main.isDarkMode ? new Color(0x5C, 0x3C, 0x15) : CADUCIDAD_BG);
                 c.setForeground(Main.isDarkMode ? new Color(0xFE, 0xEB, 0xC8) : CADUCIDAD_TEXT);
 
-                if (column == 8) {
+                if (column == 9) { // ← Caducidad (antes 8, ahora 9)
                     setText("⏰ " + (value != null ? value.toString() : ""));
                 }
 
-                if (column == 0) {
+                if (column == 1) { // ← ID (antes 0, ahora 1)
                     setBorder(BorderFactory.createCompoundBorder(
                             BorderFactory.createMatteBorder(0, 4, 0, 0, new Color(255, 183, 77)),
                             BorderFactory.createEmptyBorder(0, 8, 0, 8)
@@ -944,6 +866,7 @@ public class InventarioFrame extends JPanel {
             return c;
         }
     }
+
     @Override
     public void updateUI() {
         super.updateUI();
@@ -961,12 +884,12 @@ public class InventarioFrame extends JPanel {
         if (tablaProductos != null) {
             tablaProductos.setForeground(textClaro);
             tablaProductos.setSelectionBackground(selectionBg);
-            tablaProductos.setSelectionForeground(textClaro);
-            
+            tablaProductos.setSelectionForeground(Main.isDarkMode ? Color.WHITE : ThemeManager.GRIS_OSCURO);
+
             JTableHeader header = tablaProductos.getTableHeader();
             if (header != null) {
-                header.setBackground(Main.isDarkMode ? card : LAVANDA);
-                header.setForeground(Color.WHITE);
+                header.setBackground(Main.isDarkMode ? card : ThemeManager.GRIS_MUY_CLARO);
+                header.setForeground(Main.isDarkMode ? Color.WHITE : ThemeManager.GRIS_OSCURO);
             }
         }
         if (txtBuscar != null) {
@@ -975,10 +898,10 @@ public class InventarioFrame extends JPanel {
             txtBuscar.setCaretColor(textClaro);
             txtBuscar.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(border, 1, true),
-                    BorderFactory.createEmptyBorder(8, 10, 8, 10)
+                    BorderFactory.createEmptyBorder(10, 12, 10, 12)
             ));
         }
-        
+
         actualizarComponentesHijos(this, fondo, card, textClaro, border);
     }
 

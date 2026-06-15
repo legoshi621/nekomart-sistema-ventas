@@ -1,564 +1,305 @@
 package com.nekomart.ui;
 
-import com.nekomart.Main;
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.RenderingHints;
+import java.awt.geom.RoundRectangle2D;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+
 import com.nekomart.models.Usuario;
 import com.nekomart.services.AuthService;
 import com.nekomart.utils.SessionManager;
 
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Path2D;
-import java.io.File;
-
-/**
- * Pantalla de inicio de sesión (Login) con diseño pastel moderno.
- * Cuenta con gradiente adaptable a temas claro/oscuro, panel de tarjeta redondeado con sombra,
- * carga de logo (con fallback a gatito dibujado si no se encuentra), campos estilizados y botón coral.
- * Incluye un botón para cambiar entre tema claro y oscuro de manera dinámica.
- * Todo el código está comentado en español.
- */
 public class LoginFrame extends JFrame {
 
-    // ── Colores de la paleta pastel ──────────────────────────────────────
-    private static final Color LAVANDA = new Color(184, 169, 232);
-    private static final Color LAVANDA_CLARO = new Color(212, 196, 240);
-    private static final Color ROSA_PASTEL = new Color(255, 209, 220);
-    private static final Color CORAL = new Color(255, 139, 148);
-    private static final Color CORAL_HOVER = new Color(255, 107, 116);
-    private static final Color TEXTO_OSCURO = new Color(45, 55, 72);
-    private static final Color TEXTO_GRIS = new Color(113, 128, 150);
-    private static final Color BORDE_CAMPO = new Color(226, 232, 240);
-
-    // ── Componentes de la interfaz ───────────────────────────────────────
     private JTextField txtUsuario;
     private JPasswordField txtPassword;
     private JButton btnIniciarSesion;
+    private JButton btnMostrarPassword;
     private JPanel panelFondo;
-    private JLabel lblTitulo;
-    private JLabel lblSubtitulo;
-    private JButton btnSalir;
-    private JButton btnTema;
-
-    // Instancia del servicio de autenticación
+    
     private AuthService authService;
-
-    // Panel central con animación de entrada
-    private ShadowPanel panelCard;
-
-    // Variables para arrastrar la ventana sin decoración
-    private Point puntoInicialArrastre;
+    private boolean passwordVisible = false;
 
     public LoginFrame() {
         authService = new AuthService();
-
-        // Configuración básica del JFrame sin decoración para look moderno
         setTitle("NekoMart - Iniciar Sesión");
-        setSize(400, 550);
+        setSize(460, 580);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null); // Centrar en pantalla
+        setLocationRelativeTo(null);
         setResizable(false);
-        setUndecorated(true); // Sin borde del sistema operativo
-
-        // Inicializar la interfaz de usuario
         initComponents();
-
-        // Aplicar el tema actual inicial en los componentes
-        reaplicarTemaLogin();
-
-        // Iniciar animación de deslizamiento vertical al cargar
-        iniciarAnimacionCarga();
     }
 
-    /**
-     * Intenta cargar el archivo de logo desde recursos o ruta relativa.
-     *
-     * @return ImageIcon cargado o null si no existe.
-     */
-    private ImageIcon obtenerLogo() {
-        try {
-            // Intentar cargar desde el classpath (JAR / clases compiladas)
-            java.net.URL logoUrl = getClass().getResource("/nekomart_logo.png");
-            if (logoUrl != null) {
-                return new ImageIcon(logoUrl);
-            }
-            
-            // Intentar cargar directo de la ruta física en desarrollo
-            File file = new File("src/main/resources/nekomart_logo.png");
-            if (file.exists()) {
-                return new ImageIcon(file.getAbsolutePath());
-            }
-
-            // Fallback para archivo JPG
-            logoUrl = getClass().getResource("/nekomart_logo.jpg");
-            if (logoUrl != null) {
-                return new ImageIcon(logoUrl);
-            }
-            file = new File("src/main/resources/nekomart_logo.jpg");
-            if (file.exists()) {
-                return new ImageIcon(file.getAbsolutePath());
-            }
-        } catch (Exception e) {
-            System.err.println("Error al intentar buscar el logo: " + e.getMessage());
-        }
-        return null;
-    }
-
-    /**
-     * Construye y organiza todos los componentes visuales del login.
-     */
     private void initComponents() {
-        // ── Panel de fondo con gradiente dinámico según tema ─────────────
+        // FONDO CON GRADIENTE AZUL Y DECORACIONES
         panelFondo = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g.create();
+                Graphics2D g2 = (Graphics2D) g;
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                if (Main.isDarkMode) {
-                    // Gradiente oscuro sutil
-                    GradientPaint gp = new GradientPaint(
-                            0, 0, new Color(0x12, 0x12, 0x12),
-                            getWidth(), getHeight(), new Color(0x24, 0x24, 0x24)
-                    );
-                    g2.setPaint(gp);
-                } else {
-                    // Gradiente diagonal suave de lavanda claro a rosa pastel
-                    GradientPaint gp = new GradientPaint(
-                            0, 0, LAVANDA_CLARO,
-                            getWidth(), getHeight(), ROSA_PASTEL
-                    );
-                    g2.setPaint(gp);
-                }
+                
+                // Gradiente diagonal
+                GradientPaint gp = new GradientPaint(
+                    0, 0, new Color(96, 165, 250),
+                    getWidth(), getHeight(), new Color(30, 136, 229)
+                );
+                g2.setPaint(gp);
                 g2.fillRect(0, 0, getWidth(), getHeight());
-                g2.dispose();
+                
+                // Círculos decorativos
+                g2.setColor(new Color(255, 255, 255, 20));
+                g2.fillOval(-50, -50, 200, 200);
+                g2.fillOval(getWidth() - 100, getHeight() - 150, 250, 250);
+                g2.fillOval(getWidth() / 2 - 100, -80, 150, 150);
             }
         };
         panelFondo.setLayout(new GridBagLayout());
 
-        // Permitir arrastrar la ventana sin decoración
-        panelFondo.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                puntoInicialArrastre = e.getPoint();
-            }
-        });
-        panelFondo.addMouseMotionListener(new MouseMotionAdapter() {
-            @Override
-            public void mouseDragged(MouseEvent e) {
-                // Calcular nueva posición de la ventana
-                int x = getLocation().x + e.getX() - puntoInicialArrastre.x;
-                int y = getLocation().y + e.getY() - puntoInicialArrastre.y;
-                setLocation(x, y);
-            }
-        });
-
-        // ── Botón superior para cambiar de tema (Claro / Oscuro) ─────────
-        btnTema = new JButton("🌓");
-        btnTema.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
-        btnTema.setContentAreaFilled(false);
-        btnTema.setBorderPainted(false);
-        btnTema.setFocusPainted(false);
-        btnTema.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnTema.addActionListener(e -> {
-            Main.cambiarTema();
-            reaplicarTemaLogin();
-        });
-
-        // ── Panel tipo tarjeta blanca/gris con sombra suave ───────────────────
-        panelCard = new ShadowPanel();
-        panelCard.setLayout(new GridBagLayout());
-        panelCard.setBorder(BorderFactory.createEmptyBorder(30, 35, 30, 35));
+        // TARJETA BLANCA
+        JPanel tarjeta = new JPanel();
+        tarjeta.setLayout(new GridBagLayout());
+        tarjeta.setBackground(Color.WHITE);
+        tarjeta.setPreferredSize(new Dimension(400, 500));
+        tarjeta.setBorder(BorderFactory.createEmptyBorder(40, 35, 30, 35));
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(4, 0, 4, 0);
         gbc.gridx = 0;
-        gbc.gridwidth = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // ── 1. Logo de la aplicación (Cargado de recursos o dibujado) ────
+        // LOGO - CARRITO + TEXTO
         JPanel panelLogo = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g.create();
+                Graphics2D g2 = (Graphics2D) g;
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                ImageIcon logo = obtenerLogo();
-                if (logo != null) {
-                    // Escalar el logo a dimensiones máximas de 80x80 manteniendo relación de aspecto
-                    int iw = logo.getIconWidth();
-                    int ih = logo.getIconHeight();
-                    int maxDim = 80;
-                    int nw = iw;
-                    int nh = ih;
-                    if (iw > maxDim || ih > maxDim) {
-                        if (iw > ih) {
-                            nw = maxDim;
-                            nh = (ih * maxDim) / iw;
-                        } else {
-                            nh = maxDim;
-                            nw = (iw * maxDim) / ih;
-                        }
-                    }
-                    int x = (getWidth() - nw) / 2;
-                    int y = (getHeight() - nh) / 2;
-                    g2.drawImage(logo.getImage(), x, y, nw, nh, null);
-                } else {
-                    // Fallback a dibujo del gatito si no existe el archivo
-                    dibujarGatito(g2, getWidth() / 2, getHeight() / 2, 35);
-                }
-                g2.dispose();
+                
+                dibujarCarrito(g2, 0, 10, 35);
+                
+                g2.setColor(new Color(30, 58, 138));
+                g2.setFont(new Font("Segoe UI", Font.BOLD, 28));
+                g2.drawString("NekoMart", 45, 35);
             }
         };
         panelLogo.setOpaque(false);
-        panelLogo.setPreferredSize(new Dimension(100, 90));
+        panelLogo.setPreferredSize(new Dimension(180, 50));
         gbc.gridy = 0;
-        panelCard.add(panelLogo, gbc);
+        gbc.insets = new Insets(0, 0, 10, 0);
+        gbc.anchor = GridBagConstraints.CENTER;
+        tarjeta.add(panelLogo, gbc);
 
-        // ── 2. Título "NekoMart" ─────────────────────────────────────────
-        ImageIcon imgLogo = obtenerLogo();
-        lblTitulo = new JLabel(imgLogo != null ? "NekoMart" : "🐱 NekoMart", SwingConstants.CENTER);
-        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        // SLOGAN
+        JLabel lblSlogan = new JLabel("Sistema de Punto de Venta", JLabel.CENTER);
+        lblSlogan.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblSlogan.setForeground(new Color(100, 116, 139));
         gbc.gridy = 1;
-        gbc.insets = new Insets(2, 0, 0, 0);
-        panelCard.add(lblTitulo, gbc);
-
-        // ── 3. Subtítulo "Sistema de Ventas" ─────────────────────────────
-        lblSubtitulo = new JLabel("Sistema de Ventas", SwingConstants.CENTER);
-        lblSubtitulo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        gbc.gridy = 2;
         gbc.insets = new Insets(0, 0, 25, 0);
-        panelCard.add(lblSubtitulo, gbc);
+        tarjeta.add(lblSlogan, gbc);
 
-        // ── 4. Campo de usuario ──────────────────────────────────────────
-        txtUsuario = new JTextField(20);
-        txtUsuario.putClientProperty("JTextField.placeholderText", "Nombre de usuario");
-        txtUsuario.putClientProperty("JTextField.showClearButton", true);
-        txtUsuario.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        gbc.gridy = 3;
-        gbc.insets = new Insets(4, 0, 4, 0);
-        panelCard.add(txtUsuario, gbc);
-
-        // ── 5. Campo de contraseña ───────────────────────────────────────
-        txtPassword = new JPasswordField(20);
-        txtPassword.putClientProperty("JTextField.placeholderText", "Contraseña");
-        txtPassword.putClientProperty("JTextField.showRevealButton", true);
-        txtPassword.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        gbc.gridy = 4;
-        panelCard.add(txtPassword, gbc);
-
-        // Atajo: Enter en campo de contraseña para iniciar sesión
-        txtPassword.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    btnIniciarSesion.doClick();
-                }
-            }
-        });
-
-        // ── 6. Botón "Iniciar Sesión" con estilo coral ───────────────────
-        btnIniciarSesion = new JButton("Iniciar Sesión") {
+        // LÍNEA DECORATIVA
+        JPanel lineaDecorativa = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                GradientPaint gp = new GradientPaint(
+                    0, 0, new Color(203, 213, 225),
+                    getWidth(), 0, new Color(30, 136, 229)
+                );
+                g2.setPaint(gp);
+                g2.fillRect(0, 0, getWidth(), 2);
+            }
+        };
+        lineaDecorativa.setPreferredSize(new Dimension(0, 2));
+        gbc.gridy = 2;
+        gbc.insets = new Insets(0, 0, 25, 0);
+        tarjeta.add(lineaDecorativa, gbc);
 
-                // Dibujar fondo redondeado (25px de arco)
-                if (getModel().isRollover() || getModel().isPressed()) {
-                    g2.setColor(CORAL_HOVER);
-                } else {
-                    g2.setColor(CORAL);
-                }
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
+        // CAMPO USUARIO
+        JPanel panelUsuario = new JPanel(new BorderLayout(0, 0));
+        panelUsuario.setBackground(Color.WHITE);
+        panelUsuario.setPreferredSize(new Dimension(0, 50));
+        panelUsuario.setBorder(BorderFactory.createLineBorder(new Color(203, 213, 225), 1, true));
+        
+        JLabel lblIconoUsuario = new JLabel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(30, 58, 138));
+                g2.fillOval(8, 16, 16, 16);
+                g2.fillArc(2, 32, 28, 16, 0, 180);
+            }
+        };
+        lblIconoUsuario.setPreferredSize(new Dimension(40, 50));
+        panelUsuario.add(lblIconoUsuario, BorderLayout.WEST);
+        
+        txtUsuario = new JTextField();
+        txtUsuario.setBorder(null);
+        txtUsuario.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtUsuario.putClientProperty("FlatLaf.placeholderText", "Nombre de usuario");
+        panelUsuario.add(txtUsuario, BorderLayout.CENTER);
+        
+        gbc.gridy = 3;
+        gbc.insets = new Insets(0, 0, 15, 0);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        tarjeta.add(panelUsuario, gbc);
 
-                // Dibujar texto centrado
+        // CAMPO PASSWORD
+        JPanel panelPassword = new JPanel(new BorderLayout(0, 0));
+        panelPassword.setBackground(Color.WHITE);
+        panelPassword.setPreferredSize(new Dimension(0, 50));
+        panelPassword.setBorder(BorderFactory.createLineBorder(new Color(203, 213, 225), 1, true));
+        
+        JLabel lblIconoCandado = new JLabel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(30, 58, 138));
+                g2.fillRoundRect(10, 18, 18, 14, 3, 3);
+                g2.setStroke(new BasicStroke(1.5f));
+                g2.drawArc(10, 10, 18, 12, 0, 180);
+            }
+        };
+        lblIconoCandado.setPreferredSize(new Dimension(40, 50));
+        panelPassword.add(lblIconoCandado, BorderLayout.WEST);
+        
+        txtPassword = new JPasswordField();
+        txtPassword.setBorder(null);
+        txtPassword.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtPassword.setEchoChar('•');
+        panelPassword.add(txtPassword, BorderLayout.CENTER);
+        
+        btnMostrarPassword = new JButton("");
+        btnMostrarPassword.setPreferredSize(new Dimension(45, 50));
+        btnMostrarPassword.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        btnMostrarPassword.setForeground(new Color(30, 58, 138));
+        btnMostrarPassword.setContentAreaFilled(false);
+        btnMostrarPassword.setBorderPainted(false);
+        btnMostrarPassword.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnMostrarPassword.addActionListener(e -> {
+            passwordVisible = !passwordVisible;
+            txtPassword.setEchoChar(passwordVisible ? (char)0 : '•');
+        });
+        panelPassword.add(btnMostrarPassword, BorderLayout.EAST);
+        
+        gbc.gridy = 4;
+        gbc.insets = new Insets(0, 0, 25, 0);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        tarjeta.add(panelPassword, gbc);
+
+        // BOTÓN INICIAR SESIÓN
+        btnIniciarSesion = new JButton("INICIAR SESIÓN") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                Color btnColor = getModel().isPressed() ? new Color(29, 78, 216) : 
+                                getModel().isRollover() ? new Color(37, 99, 235) : 
+                                new Color(30, 136, 229);
+                
+                g2.setColor(btnColor);
+                g2.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 10, 10));
+                
                 g2.setColor(Color.WHITE);
                 g2.setFont(getFont());
-                FontMetrics fm = g2.getFontMetrics();
+                java.awt.FontMetrics fm = g2.getFontMetrics();
                 int x = (getWidth() - fm.stringWidth(getText())) / 2;
                 int y = (getHeight() + fm.getAscent() - fm.getDescent()) / 2;
                 g2.drawString(getText(), x, y);
-                g2.dispose();
             }
         };
         btnIniciarSesion.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnIniciarSesion.setForeground(Color.WHITE);
-        btnIniciarSesion.setContentAreaFilled(false);
-        btnIniciarSesion.setBorderPainted(false);
+        btnIniciarSesion.setPreferredSize(new Dimension(0, 50));
         btnIniciarSesion.setFocusPainted(false);
+        btnIniciarSesion.setBorderPainted(false);
+        btnIniciarSesion.setContentAreaFilled(false);
         btnIniciarSesion.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnIniciarSesion.setPreferredSize(new Dimension(0, 45));
-        gbc.gridy = 5;
-        gbc.insets = new Insets(20, 0, 5, 0);
-        panelCard.add(btnIniciarSesion, gbc);
-
-        // ── 7. Botón "Salir" discreto ────────────────────────────────────
-        btnSalir = new JButton("Salir");
-        btnSalir.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        btnSalir.setContentAreaFilled(false);
-        btnSalir.setBorderPainted(false);
-        btnSalir.setFocusPainted(false);
-        btnSalir.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        gbc.gridy = 6;
-        gbc.insets = new Insets(5, 0, 0, 0);
-        panelCard.add(btnSalir, gbc);
-
-        // ── Eventos de clic ──────────────────────────────────────────────
         btnIniciarSesion.addActionListener(e -> realizarLogin());
-        btnSalir.addActionListener(e -> System.exit(0));
+        
+        gbc.gridy = 5;
+        gbc.insets = new Insets(0, 0, 15, 0);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        tarjeta.add(btnIniciarSesion, gbc);
 
-        // ── GridBagConstraints para botón Tema y Tarjeta en fondo ─────────
-        GridBagConstraints gbcTema = new GridBagConstraints();
-        gbcTema.gridx = 0;
-        gbcTema.gridy = 0;
-        gbcTema.anchor = GridBagConstraints.NORTHEAST;
-        gbcTema.insets = new Insets(15, 15, 0, 15);
-        panelFondo.add(btnTema, gbcTema);
+        // TEXTO INFERIOR
+        JLabel lblFooter = new JLabel("© 2026 NekoMart - Todos los derechos reservados", JLabel.CENTER);
+        lblFooter.setFont(new Font("Segoe UI", Font.PLAIN, 10));
+        lblFooter.setForeground(new Color(148, 163, 184));
+        gbc.gridy = 6;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        gbc.weighty = 1.0;
+        gbc.anchor = GridBagConstraints.SOUTH;
+        tarjeta.add(lblFooter, gbc);
 
-        GridBagConstraints gbcCard = new GridBagConstraints();
-        gbcCard.gridx = 0;
-        gbcCard.gridy = 1;
-        gbcCard.insets = new Insets(0, 0, 20, 0);
-        panelFondo.add(panelCard, gbcCard);
-
-        // Añadir el panel de fondo al JFrame
+        panelFondo.add(tarjeta);
         add(panelFondo);
     }
 
-    /**
-     * Adapta la apariencia de la pantalla según `Main.isDarkMode` esté activo.
-     */
-    public void reaplicarTemaLogin() {
-        Color fgColor = Main.isDarkMode ? Color.WHITE : TEXTO_OSCURO;
-        Color textGris = Main.isDarkMode ? new Color(170, 170, 170) : TEXTO_GRIS;
-        Color bgField = Main.isDarkMode ? new Color(0x3D, 0x3D, 0x3D) : Color.WHITE;
-        Color borderField = Main.isDarkMode ? new Color(0x55, 0x55, 0x55) : BORDE_CAMPO;
-
-        // Estilos para el campo Usuario
-        txtUsuario.setBackground(bgField);
-        txtUsuario.setForeground(fgColor);
-        txtUsuario.setCaretColor(fgColor);
-        txtUsuario.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(borderField, 1, true),
-                BorderFactory.createEmptyBorder(10, 12, 10, 12)
-        ));
-
-        // Estilos para el campo Password
-        txtPassword.setBackground(bgField);
-        txtPassword.setForeground(fgColor);
-        txtPassword.setCaretColor(fgColor);
-        txtPassword.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(borderField, 1, true),
-                BorderFactory.createEmptyBorder(10, 12, 10, 12)
-        ));
-
-        // Estilos de textos y botones
-        lblTitulo.setForeground(Main.isDarkMode ? Color.WHITE : new Color(120, 100, 180));
-        lblSubtitulo.setForeground(textGris);
-        btnSalir.setForeground(textGris);
-        btnTema.setForeground(Main.isDarkMode ? Color.WHITE : TEXTO_OSCURO);
-
-        // Repintar fondo y tarjeta
-        panelFondo.repaint();
-        panelCard.repaint();
+    private void dibujarCarrito(Graphics2D g2, int x, int y, int size) {
+        g2.setColor(new Color(30, 58, 138));
+        g2.setStroke(new BasicStroke(2.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        
+        g2.drawLine(x, y + 8, x + 10, y + 8);
+        g2.drawLine(x + 10, y + 8, x + 14, y + 28);
+        g2.drawLine(x + 14, y + 28, x + size - 10, y + 28);
+        g2.drawLine(x + size - 10, y + 28, x + size, y + 10);
+        g2.drawLine(x + size, y + 10, x + 10, y + 10);
+        g2.fillOval(x + 16, y + 30, 8, 8);
+        g2.fillOval(x + size - 22, y + 30, 8, 8);
     }
 
-    /**
-     * Dibuja un gatito estilizado con Graphics2D.
-     * Usa formas geométricas simples en tonos lavanda.
-     *
-     * @param g2   Contexto gráfico 2D
-     * @param cx   Centro X del dibujo
-     * @param cy   Centro Y del dibujo
-     * @param size Tamaño base del gatito
-     */
-    private void dibujarGatito(Graphics2D g2, int cx, int cy, int size) {
-        // Cara del gato (círculo principal)
-        g2.setColor(LAVANDA);
-        g2.fillOval(cx - size, cy - size + 5, size * 2, size * 2);
-
-        // Oreja izquierda (triángulo)
-        Path2D orejaIzq = new Path2D.Double();
-        orejaIzq.moveTo(cx - size + 5, cy - size + 10);
-        orejaIzq.lineTo(cx - size / 2 - 5, cy - size - 18);
-        orejaIzq.lineTo(cx - 5, cy - size + 10);
-        orejaIzq.closePath();
-        g2.fill(orejaIzq);
-
-        // Oreja derecha (triángulo)
-        Path2D orejaDer = new Path2D.Double();
-        orejaDer.moveTo(cx + 5, cy - size + 10);
-        orejaDer.lineTo(cx + size / 2 + 5, cy - size - 18);
-        orejaDer.lineTo(cx + size - 5, cy - size + 10);
-        orejaDer.closePath();
-        g2.fill(orejaDer);
-
-        // Interior de orejas (rosa pastel)
-        g2.setColor(ROSA_PASTEL);
-        Path2D intIzq = new Path2D.Double();
-        intIzq.moveTo(cx - size + 12, cy - size + 12);
-        intIzq.lineTo(cx - size / 2 - 3, cy - size - 10);
-        intIzq.lineTo(cx - 10, cy - size + 12);
-        intIzq.closePath();
-        g2.fill(intIzq);
-
-        Path2D intDer = new Path2D.Double();
-        intDer.moveTo(cx + 10, cy - size + 12);
-        intDer.lineTo(cx + size / 2 + 3, cy - size - 10);
-        intDer.lineTo(cx + size - 12, cy - size + 12);
-        intDer.closePath();
-        g2.fill(intDer);
-
-        // Ojos (blancos con pupilas oscuras)
-        g2.setColor(Color.WHITE);
-        g2.fillOval(cx - 16, cy - 8, 14, 14);
-        g2.fillOval(cx + 2, cy - 8, 14, 14);
-        g2.setColor(TEXTO_OSCURO);
-        g2.fillOval(cx - 12, cy - 4, 7, 7);
-        g2.fillOval(cx + 6, cy - 4, 7, 7);
-        // Brillos en los ojos
-        g2.setColor(Color.WHITE);
-        g2.fillOval(cx - 11, cy - 3, 3, 3);
-        g2.fillOval(cx + 7, cy - 3, 3, 3);
-
-        // Nariz (triángulo rosa pequeño)
-        g2.setColor(CORAL);
-        Path2D nariz = new Path2D.Double();
-        nariz.moveTo(cx, cy + 4);
-        nariz.lineTo(cx - 4, cy + 10);
-        nariz.lineTo(cx + 4, cy + 10);
-        nariz.closePath();
-        g2.fill(nariz);
-
-        // Boca (dos líneas curvas)
-        g2.setColor(TEXTO_OSCURO);
-        g2.setStroke(new BasicStroke(1.5f));
-        g2.drawArc(cx - 8, cy + 6, 8, 8, 0, -180);
-        g2.drawArc(cx, cy + 6, 8, 8, 0, -180);
-
-        // Bigotes (3 a cada lado)
-        g2.setStroke(new BasicStroke(1.2f));
-        g2.setColor(TEXTO_GRIS);
-        // Izquierda
-        g2.drawLine(cx - 18, cy + 4, cx - size - 8, cy);
-        g2.drawLine(cx - 18, cy + 8, cx - size - 10, cy + 8);
-        g2.drawLine(cx - 18, cy + 12, cx - size - 8, cy + 16);
-        // Derecha
-        g2.drawLine(cx + 18, cy + 4, cx + size + 8, cy);
-        g2.drawLine(cx + 18, cy + 8, cx + size + 10, cy + 8);
-        g2.drawLine(cx + 18, cy + 12, cx + size + 8, cy + 16);
-    }
-
-    /**
-     * Lógica principal que se ejecuta al presionar "Iniciar Sesión".
-     * Valida credenciales y abre la ventana principal si son correctas.
-     */
     private void realizarLogin() {
-        String username = txtUsuario.getText();
+        String username = txtUsuario.getText().trim();
         String password = new String(txtPassword.getPassword());
 
-        Usuario usuarioValidado = authService.login(username, password);
+        if (username.isEmpty() || password.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                "Por favor complete todos los campos",
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-        if (usuarioValidado != null) {
-            // Guardar sesión del usuario autenticado
-            SessionManager.getInstancia().setUsuarioActual(usuarioValidado);
+        Usuario usuario = authService.login(username, password);
 
-            // Abrir la ventana principal
+        if (usuario != null) {
+            SessionManager.getInstancia().setUsuarioActual(usuario);
             MainFrame mainFrame = new MainFrame();
             mainFrame.setVisible(true);
-
-            // Cerrar la ventana de login
             this.dispose();
         } else {
             JOptionPane.showMessageDialog(this,
-                    "Usuario o contraseña incorrectos",
-                    "Error de acceso",
-                    JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    /**
-     * Inicia un temporizador para animación de deslizamiento vertical (slide-in).
-     * El panel central se desliza suavemente de arriba hacia su posición final.
-     */
-    private void iniciarAnimacionCarga() {
-        Timer timer = new Timer(15, new ActionListener() {
-            private double currentY = 50.0; // Desplazamiento inicial en píxeles
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                currentY = currentY * 0.85; // Disminución progresiva (ease-out)
-                if (currentY < 0.5) {
-                    panelCard.setAnimYOffset(0);
-                    panelCard.repaint();
-                    ((Timer) e.getSource()).stop();
-                } else {
-                    panelCard.setAnimYOffset((int) currentY);
-                    panelCard.repaint();
-                }
-            }
-        });
-        timer.start();
-    }
-
-    /**
-     * Panel personalizado que dibuja una tarjeta con bordes redondeados (20px)
-     * y sombra suave difuminada. Soporta animación de desplazamiento vertical y
-     * color de fondo adaptable al tema.
-     */
-    private class ShadowPanel extends JPanel {
-        // Desplazamiento vertical para la animación de entrada
-        private int animYOffset = 50;
-
-        public ShadowPanel() {
-            setOpaque(false);
-            setPreferredSize(new Dimension(340, 460));
-        }
-
-        /**
-         * Establece el desplazamiento vertical para la animación.
-         *
-         * @param offset Píxeles de desplazamiento desde la posición final
-         */
-        public void setAnimYOffset(int offset) {
-            this.animYOffset = offset;
-        }
-
-        @Override
-        public void paint(Graphics g) {
-            // Aplicar traslación vertical para la animación de slide-in
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.translate(0, animYOffset);
-            super.paint(g2);
-            g2.dispose();
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            int width = getWidth();
-            int height = getHeight();
-
-            // Dibujar sombra suave difuminada (múltiples capas semi-transparentes)
-            // En modo oscuro se hace una sombra mucho más tenue
-            int maxSombra = Main.isDarkMode ? 4 : 10;
-            for (int i = 0; i < 8; i++) {
-                int alpha = Math.max(0, maxSombra - i);
-                g2.setColor(new Color(0, 0, 0, alpha));
-                g2.fillRoundRect(i, i + 2, width - (i * 2), height - (i * 2), 24, 24);
-            }
-
-            // Dibujar fondo de la tarjeta con color dependiente del tema
-            g2.setColor(Main.isDarkMode ? new Color(0x2D, 0x2D, 0x2D) : Color.WHITE);
-            g2.fillRoundRect(6, 6, width - 12, height - 12, 20, 20);
-
-            g2.dispose();
+                "Usuario o contraseña incorrectos",
+                "Error de acceso",
+                JOptionPane.ERROR_MESSAGE);
         }
     }
 }

@@ -1,157 +1,227 @@
 package com.nekomart.ui;
 
-import com.nekomart.Main;
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridLayout;
+import java.awt.RenderingHints;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+
 import com.nekomart.models.Usuario;
 import com.nekomart.utils.SessionManager;
-import com.nekomart.services.UsuarioService;
 
-import javax.swing.*;
-import javax.swing.plaf.basic.BasicTabbedPaneUI;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.geom.Path2D;
-
-/**
- * Pantalla principal del sistema NekoMart con diseño pastel moderno.
- * Barra superior con logo, información de usuario, botón de tema claro/oscuro y botones de contraseña/cerrar sesión.
- * Navegación por pestañas con colores adaptables lavanda (activa) y blanco/gris (inactiva).
- * Todo el código está comentado en español.
- */
 public class MainFrame extends JFrame {
 
-    // ── Colores de la paleta pastel ──────────────────────────────────────
-    private static final Color LAVANDA = new Color(184, 169, 232);
-    private static final Color LAVANDA_CLARO = new Color(212, 196, 240);
-    private static final Color CORAL = new Color(255, 139, 148);
-    private static final Color CORAL_HOVER = new Color(255, 107, 116);
-    private static final Color FONDO = new Color(250, 250, 250);
-    private static final Color TEXTO_OSCURO = new Color(45, 55, 72);
-    private static final Color TEXTO_GRIS = new Color(113, 128, 150);
+    private static final Color AZUL_POS = new Color(59, 130, 246);
+    private static final Color SIDEBAR_COLOR = new Color(30, 41, 59);
+    private static final Color SIDEBAR_HOVER = new Color(51, 65, 85);
+    private static final Color FONDO = new Color(241, 245, 249);
+    private static final Color TEXTO_OSCURO = new Color(30, 41, 59);
+    private static final Color TEXTO_GRIS = new Color(100, 116, 139);
     private static final Color BORDE = new Color(226, 232, 240);
 
-    // ── Componentes de la interfaz ───────────────────────────────────────
-    private JButton btnCerrarSesion;
-    private JButton btnCambiarPassword;
-    private JButton btnTema;
-    private JTabbedPane tabbedPane;
+    private JPanel sidebarPanel;
+    private JPanel contentPanel;
+    private CardLayout cardLayout;
     private DashboardFrame dashboard;
-    
-    // Paneles y etiquetas principales expuestos para actualizaciones de tema
-    private JPanel panelSuperior;
-    private JPanel panelInicio;
-    private JLabel lblAppName;
-    private JLabel lblUserInfo;
-    private JLabel lblWelcomeTitle;
-    private JLabel lblWelcomeSub;
+    private CorteCajaFrame corteCajaFrame;
+    private Usuario usuarioActual;
 
     public MainFrame() {
         setTitle("NekoMart - Sistema de Ventas");
-        setSize(1200, 800);
+        setSize(1280, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         initComponents();
-        
-        // Aplicar el tema inicial
-        reaplicarTemaMainFrame();
     }
 
-    /**
-     * Inicializa y organiza los componentes principales de la interfaz.
-     */
     private void initComponents() {
-        Usuario usuario = SessionManager.getInstancia().getUsuarioActual();
+        usuarioActual = SessionManager.getInstancia().getUsuarioActual();
+        String rol = (usuarioActual != null) ? usuarioActual.getRol().toUpperCase() : "EMPLEADO";
+
+        setLayout(new BorderLayout());
 
         // ══════════════════════════════════════════════════════════════════
-        // 1. BARRA SUPERIOR — Fondo adaptable, altura 60px, borde inferior
+        // SIDEBAR
         // ══════════════════════════════════════════════════════════════════
-        panelSuperior = new JPanel(new GridBagLayout()) {
+        sidebarPanel = new JPanel();
+        sidebarPanel.setLayout(new BoxLayout(sidebarPanel, BoxLayout.Y_AXIS));
+        sidebarPanel.setBackground(SIDEBAR_COLOR);
+        sidebarPanel.setPreferredSize(new Dimension(240, 800));
+        sidebarPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
+
+        // HEADER: Avatar + Nombre + Rol
+        JPanel panelHeader = new JPanel();
+        panelHeader.setLayout(new BoxLayout(panelHeader, BoxLayout.Y_AXIS));
+        panelHeader.setOpaque(false);
+        panelHeader.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panelHeader.setMaximumSize(new Dimension(240, 80));
+        panelHeader.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+
+        // Avatar centrado
+        JLabel lblAvatar = new JLabel() {
             @Override
             protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                // Dibujar borde inferior sutil con color adaptado
-                g.setColor(Main.isDarkMode ? new Color(60, 60, 60) : BORDE);
-                g.drawLine(0, getHeight() - 1, getWidth(), getHeight() - 1);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(AZUL_POS);
+                g2.fillOval(0, 0, 44, 44);
+                g2.setColor(Color.WHITE);
+                g2.setFont(new Font("Segoe UI", Font.BOLD, 16));
+                String iniciales = obtenerIniciales(usuarioActual);
+                FontMetrics fm = g2.getFontMetrics();
+                int width = fm.stringWidth(iniciales);
+                g2.drawString(iniciales, (44 - width) / 2, 30);
             }
         };
-        panelSuperior.setBackground(Color.WHITE);
-        panelSuperior.setPreferredSize(new Dimension(0, 60));
-        panelSuperior.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 20));
+        lblAvatar.setPreferredSize(new Dimension(44, 44));
+        lblAvatar.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panelHeader.add(lblAvatar);
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.VERTICAL;
+        panelHeader.add(Box.createVerticalStrut(8));
 
-        // ── Logo: gatito pequeño dibujado ─────────────────────────────────
-        JPanel panelLogoIcon = new JPanel() {
+        // Nombre del usuario
+        JLabel lblNombre = new JLabel(usuarioActual != null ? usuarioActual.getNombreCompleto() : "Usuario");
+        lblNombre.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblNombre.setForeground(Color.WHITE);
+        lblNombre.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panelHeader.add(lblNombre);
+
+        // Rol del usuario
+        JLabel lblRol = new JLabel(rol.equals("ADMIN") ? "Administrador" : "Empleado");
+        lblRol.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lblRol.setForeground(new Color(148, 163, 184));
+        lblRol.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panelHeader.add(lblRol);
+
+        sidebarPanel.add(panelHeader);
+        sidebarPanel.add(Box.createVerticalStrut(15));
+
+        // LOGO: Icono + Nombre
+        JPanel panelLogo = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 5));
+        panelLogo.setOpaque(false);
+        panelLogo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panelLogo.setMaximumSize(new Dimension(240, 45));
+
+        JLabel lblLogoIcon = new JLabel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                dibujarGatitoPequeno(g2, 16, 16, 12);
+                dibujarCarritoSidebar(g2, 0, 5, 28);
                 g2.dispose();
             }
         };
-        panelLogoIcon.setOpaque(false);
-        panelLogoIcon.setPreferredSize(new Dimension(32, 32));
-        gbc.gridx = 0;
-        gbc.insets = new Insets(0, 0, 0, 8);
-        panelSuperior.add(panelLogoIcon, gbc);
+        lblLogoIcon.setPreferredSize(new Dimension(35, 35));
+        panelLogo.add(lblLogoIcon);
 
-        // ── Nombre de la aplicación ──────────────────────────────────────
-        lblAppName = new JLabel("NekoMart");
+        JLabel lblAppName = new JLabel("NekoMart");
         lblAppName.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        lblAppName.setForeground(new Color(120, 100, 180)); // Lavanda oscuro
-        gbc.gridx = 1;
-        gbc.insets = new Insets(0, 0, 0, 0);
-        panelSuperior.add(lblAppName, gbc);
+        lblAppName.setForeground(Color.WHITE);
+        panelLogo.add(lblAppName);
+        sidebarPanel.add(panelLogo);
+        sidebarPanel.add(Box.createVerticalStrut(10));
 
-        // ── Espaciador expansivo ─────────────────────────────────────────
-        gbc.gridx = 2;
-        gbc.weightx = 1.0;
-        panelSuperior.add(Box.createGlue(), gbc);
-
-        // ── Información del usuario ──────────────────────────────────────
-        gbc.gridx = 3;
-        gbc.weightx = 0.0;
-        gbc.insets = new Insets(0, 0, 0, 15);
-        lblUserInfo = new JLabel("👤 " + (usuario != null ? usuario.getNombreCompleto() : "Invitado") + 
-                " (" + (usuario != null ? usuario.getRol() : "Ninguno") + ")");
-        lblUserInfo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        lblUserInfo.setForeground(TEXTO_OSCURO);
-        panelSuperior.add(lblUserInfo, gbc);
-
-        // ── Botón "🌓" para alternar tema ─────────────────────────────
-        btnTema = new JButton(Main.isDarkMode ? "☀️" : "🌙") {
-            private boolean hover = false;
-            {
-                addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseEntered(MouseEvent e) {
-                        hover = true;
-                        repaint();
-                    }
-                    @Override
-                    public void mouseExited(MouseEvent e) {
-                        hover = false;
-                        repaint();
-                    }
-                });
+        // Línea separadora
+        JPanel linea = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setColor(new Color(51, 65, 85));
+                g2.fillRect(15, 0, 210, 1);
             }
+        };
+        linea.setOpaque(false);
+        linea.setMaximumSize(new Dimension(240, 1));
+        linea.setAlignmentX(Component.CENTER_ALIGNMENT);
+        sidebarPanel.add(linea);
+        sidebarPanel.add(Box.createVerticalStrut(10));
+
+        // MENÚ DE NAVEGACIÓN
+        agregarBotonSidebar("Dashboard", "dashboard", "dashboard", true);
+        agregarBotonSidebar("Punto de Venta", "ventas", "ventas", false);
+
+        if (rol.equals("ADMIN")) {
+            agregarBotonSidebar("Inventario", "inventario", "inventario", false);
+            agregarBotonSidebar("Usuarios", "usuarios", "usuarios", false);
+            agregarBotonSidebar("Historial", "historial", "historial", false);
+            agregarBotonSidebar("Corte de Caja", "corte", "corte", false);
+        } else {
+            agregarBotonSidebar("Consulta Inventario", "inventario", "inventario", false);
+            agregarBotonSidebar("Mis Ventas", "historial", "historial", false);
+        }
+
+        // Espacio flexible
+        sidebarPanel.add(Box.createVerticalGlue());
+
+        // Botón Mi Perfil
+        JButton btnPerfil = crearBotonPerfil(usuarioActual);
+        sidebarPanel.add(btnPerfil);
+        sidebarPanel.add(Box.createVerticalStrut(10));
+
+        add(sidebarPanel, BorderLayout.WEST);
+
+        // ══════════════════════════════════════════════════════════════════
+        // TOPBAR
+        // ══════════════════════════════════════════════════════════════════
+        JPanel panelSuperior = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
+        panelSuperior.setBackground(Color.WHITE);
+        panelSuperior.setPreferredSize(new Dimension(0, 55));
+        panelSuperior.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, BORDE));
+
+        // Notificaciones
+        JButton btnNotif = new JButton() {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                Color accentColor = Main.isDarkMode ? new Color(255, 183, 77) : LAVANDA;
-                if (hover) {
-                    g2.setColor(accentColor);
-                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
-                    g2.setColor(Color.WHITE);
-                } else {
-                    g2.setColor(accentColor);
-                    g2.setStroke(new BasicStroke(1.5f));
-                    g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 16, 16);
+                if (getModel().isRollover()) {
+                    g2.setColor(new Color(241, 245, 249));
+                    g2.fillOval(0, 0, 32, 32);
                 }
+                g2.setColor(TEXTO_GRIS);
+                g2.setStroke(new BasicStroke(2));
+                g2.drawArc(8, 6, 16, 16, 0, 180);
+                g2.drawLine(8, 14, 8, 20);
+                g2.drawLine(24, 14, 24, 20);
+                g2.drawLine(6, 20, 26, 20);
+                g2.fillOval(14, 22, 4, 4);
+                g2.dispose();
+            }
+        };
+        btnNotif.setPreferredSize(new Dimension(32, 32));
+        btnNotif.setContentAreaFilled(false);
+        btnNotif.setBorderPainted(false);
+        btnNotif.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        panelSuperior.add(btnNotif);
+
+        // Cerrar Sesión
+        JButton btnCerrar = new JButton("Cerrar Sesión") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getModel().isRollover() ? new Color(220, 38, 38) : new Color(239, 68, 68));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 6, 6);
+                g2.setColor(Color.WHITE);
                 g2.setFont(getFont());
                 FontMetrics fm = g2.getFontMetrics();
                 int x = (getWidth() - fm.stringWidth(getText())) / 2;
@@ -160,461 +230,238 @@ public class MainFrame extends JFrame {
                 g2.dispose();
             }
         };
-        btnTema.setFont(new Font("Segoe UI Emoji", Font.BOLD, 14));
-        btnTema.setContentAreaFilled(false);
-        btnTema.setBorderPainted(false);
-        btnTema.setFocusPainted(false);
-        btnTema.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnTema.setPreferredSize(new Dimension(50, 35));
-        btnTema.addActionListener(e -> {
-            Main.cambiarTema();
-            reaplicarTemaMainFrame();
+        btnCerrar.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        btnCerrar.setForeground(Color.WHITE);
+        btnCerrar.setPreferredSize(new Dimension(105, 32));
+        btnCerrar.setContentAreaFilled(false);
+        btnCerrar.setBorderPainted(false);
+        btnCerrar.setFocusPainted(false);
+        btnCerrar.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnCerrar.addActionListener(e -> {
+            SessionManager.getInstancia().cerrarSesion();
+            new LoginFrame().setVisible(true);
+            dispose();
         });
+        panelSuperior.add(btnCerrar);
 
-        // ── Botón "Cambiar Contraseña" con estilo lavanda outline ─────────
-        btnCambiarPassword = new JButton("🔒 Cambiar Contraseña") {
-            private boolean hover = false;
-            {
-                addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseEntered(MouseEvent e) {
-                        hover = true;
-                        repaint();
-                    }
-                    @Override
-                    public void mouseExited(MouseEvent e) {
-                        hover = false;
-                        repaint();
-                    }
-                });
-            }
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                if (hover) {
-                    g2.setColor(LAVANDA);
-                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
-                    g2.setColor(Color.WHITE);
-                } else {
-                    g2.setColor(LAVANDA);
-                    g2.setStroke(new BasicStroke(1.5f));
-                    g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 16, 16);
-                }
-                g2.setFont(getFont());
-                FontMetrics fm = g2.getFontMetrics();
-                int x = (getWidth() - fm.stringWidth(getText())) / 2;
-                int y = (getHeight() + fm.getAscent() - fm.getDescent()) / 2;
-                g2.drawString(getText(), x, y);
-                g2.dispose();
-            }
-        };
-        btnCambiarPassword.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnCambiarPassword.setForeground(LAVANDA);
-        btnCambiarPassword.setContentAreaFilled(false);
-        btnCambiarPassword.setBorderPainted(false);
-        btnCambiarPassword.setFocusPainted(false);
-        btnCambiarPassword.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnCambiarPassword.setPreferredSize(new Dimension(160, 35));
-        btnCambiarPassword.addActionListener(e -> mostrarDialogoCambiarPassword(usuario));
-
-        // ── Botón "Cerrar Sesión" con estilo coral outline ───────────────
-        btnCerrarSesion = new JButton("Cerrar Sesión") {
-            private boolean hover = false;
-            {
-                addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseEntered(MouseEvent e) {
-                        hover = true;
-                        repaint();
-                    }
-                    @Override
-                    public void mouseExited(MouseEvent e) {
-                        hover = false;
-                        repaint();
-                    }
-                });
-            }
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                if (hover) {
-                    g2.setColor(CORAL);
-                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
-                    g2.setColor(Color.WHITE);
-                } else {
-                    g2.setColor(CORAL);
-                    g2.setStroke(new BasicStroke(1.5f));
-                    g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 16, 16);
-                }
-                g2.setFont(getFont());
-                FontMetrics fm = g2.getFontMetrics();
-                int x = (getWidth() - fm.stringWidth(getText())) / 2;
-                int y = (getHeight() + fm.getAscent() - fm.getDescent()) / 2;
-                g2.drawString(getText(), x, y);
-                g2.dispose();
-            }
-        };
-        btnCerrarSesion.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnCerrarSesion.setForeground(CORAL);
-        btnCerrarSesion.setContentAreaFilled(false);
-        btnCerrarSesion.setBorderPainted(false);
-        btnCerrarSesion.setFocusPainted(false);
-        btnCerrarSesion.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnCerrarSesion.setPreferredSize(new Dimension(130, 35));
-        btnCerrarSesion.addActionListener(e -> cerrarSesion());
-
-        // Colocar botones en la barra superior
-        gbc.gridx = 4;
-        gbc.insets = new Insets(0, 0, 0, 10);
-        panelSuperior.add(btnTema, gbc);
-
-        gbc.gridx = 5;
-        gbc.insets = new Insets(0, 0, 0, 10);
-        panelSuperior.add(btnCambiarPassword, gbc);
-
-        gbc.gridx = 6;
-        gbc.insets = new Insets(0, 0, 0, 0);
-        panelSuperior.add(btnCerrarSesion, gbc);
+        add(panelSuperior, BorderLayout.NORTH);
 
         // ══════════════════════════════════════════════════════════════════
-        // 2. DASHBOARD — Instanciar panel de estadísticas
+        // CONTENIDO
         // ══════════════════════════════════════════════════════════════════
-        dashboard = new DashboardFrame();
+        cardLayout = new CardLayout();
+        contentPanel = new JPanel(cardLayout);
+        contentPanel.setBackground(FONDO);
 
-        // ══════════════════════════════════════════════════════════════════
-        // 3. PANEL DE INICIO — Bienvenida + Dashboard
-        // ══════════════════════════════════════════════════════════════════
-        panelInicio = new JPanel(new BorderLayout(15, 15));
-        panelInicio.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        panelInicio.setBackground(FONDO);
+        dashboard = new DashboardFrame(usuarioActual);
+        InventarioFrame inventarioFrame = new InventarioFrame();
+        UsuariosFrame usuariosFrame = new UsuariosFrame();
+        VentasFrame ventasFrame = new VentasFrame();
+        HistorialVentasFrame historialFrame = new HistorialVentasFrame();
+        ProfilePanel profilePanel = new ProfilePanel(usuarioActual); // ← AGREGADO
 
-        // Panel de bienvenida con saludo y descripción
+        if (rol.equals("ADMIN")) {
+            corteCajaFrame = new CorteCajaFrame();
+        }
+
         JPanel panelWelcome = new JPanel(new GridLayout(2, 1, 5, 5));
         panelWelcome.setOpaque(false);
+        panelWelcome.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
 
-        lblWelcomeTitle = new JLabel("¡Hola, " + (usuario != null ? usuario.getNombreCompleto() : "Usuario") + "! 👋");
+        JLabel lblWelcomeTitle = new JLabel("¡Hola, " + (usuarioActual != null ? usuarioActual.getNombreCompleto() : "Usuario") + "!");
         lblWelcomeTitle.setFont(new Font("Segoe UI", Font.BOLD, 24));
         lblWelcomeTitle.setForeground(TEXTO_OSCURO);
 
-        lblWelcomeSub = new JLabel("Bienvenido al panel de administración de NekoMart. Aquí tienes el resumen del día.");
-        lblWelcomeSub.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        JLabel lblWelcomeSub = new JLabel("Bienvenido al panel de administración de NekoMart.");
+        lblWelcomeSub.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         lblWelcomeSub.setForeground(TEXTO_GRIS);
 
         panelWelcome.add(lblWelcomeTitle);
         panelWelcome.add(lblWelcomeSub);
 
-        panelInicio.add(panelWelcome, BorderLayout.NORTH);
-        panelInicio.add(dashboard, BorderLayout.CENTER);
+        JPanel panelDashboard = new JPanel(new BorderLayout());
+        panelDashboard.setOpaque(false);
+        panelDashboard.add(panelWelcome, BorderLayout.NORTH);
+        panelDashboard.add(dashboard, BorderLayout.CENTER);
 
-        // ══════════════════════════════════════════════════════════════════
-        // 4. TABBEDPANE — Pestañas con colores personalizados
-        // ══════════════════════════════════════════════════════════════════
-        tabbedPane = new JTabbedPane();
-        tabbedPane.setBackground(FONDO);
-        tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        // Agregar todos los paneles al CardLayout
+        contentPanel.add(panelDashboard, "dashboard");
+        contentPanel.add(ventasFrame, "ventas");
+        contentPanel.add(inventarioFrame, "inventario");
+        contentPanel.add(usuariosFrame, "usuarios");
+        contentPanel.add(historialFrame, "historial");
+        contentPanel.add(profilePanel, "perfil"); // ← AGREGADO
 
-        // Aplicar UI personalizada para pestañas lavanda/blanco/gris oscuro
-        tabbedPane.setUI(new PastelTabbedPaneUI());
-
-        String rol = (usuario != null) ? usuario.getRol().toUpperCase() : "EMPLEADO";
-
-        if (rol.equals("ADMIN")) {
-            // ADMIN ve: Dashboard, Inventario, Usuarios, Ventas, Historial
-            tabbedPane.addTab("📊 Dashboard", panelInicio);
-            tabbedPane.addTab("📦 Inventario", new InventarioFrame());
-            tabbedPane.addTab("👥 Usuarios", new UsuariosFrame());
-            tabbedPane.addTab("🛒 Ventas (POS)", new VentasFrame());
-            tabbedPane.addTab("📋 Historial", new HistorialVentasFrame());
-        } else {
-            // EMPLEADO ve: Dashboard, Ventas, Historial
-            tabbedPane.addTab("📊 Dashboard", panelInicio);
-            tabbedPane.addTab("🛒 Ventas (POS)", new VentasFrame());
-            tabbedPane.addTab("📋 Historial", new HistorialVentasFrame());
+        if (rol.equals("ADMIN") && corteCajaFrame != null) {
+            contentPanel.add(corteCajaFrame, "corte");
         }
 
-        // Refrescar el Dashboard al seleccionar la pestaña correspondiente (índice 0)
-        tabbedPane.addChangeListener(e -> {
-            if (tabbedPane.getSelectedIndex() == 0) {
-                dashboard.cargarDatos();
+        add(contentPanel, BorderLayout.CENTER);
+        cardLayout.show(contentPanel, "dashboard");
+    }
+
+    private void agregarBotonSidebar(String texto, String idPanel, String tipoIcono, boolean activo) {
+        JButton btn = new JButton() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                if (getBackground().equals(AZUL_POS)) {
+                    g2.setColor(AZUL_POS);
+                } else if (getModel().isRollover()) {
+                    g2.setColor(SIDEBAR_HOVER);
+                } else {
+                    g2.setColor(SIDEBAR_COLOR);
+                }
+                g2.fillRect(0, 0, getWidth(), getHeight());
+
+                dibujarIconoMenu(g2, tipoIcono, 18, 11);
+
+                g2.setColor(Color.WHITE);
+                g2.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+                g2.drawString(texto, 48, 25);
+                g2.dispose();
             }
-        });
+        };
 
-        // ══════════════════════════════════════════════════════════════════
-        // 5. ORGANIZAR LAYOUT PRINCIPAL
-        // ══════════════════════════════════════════════════════════════════
-        setLayout(new BorderLayout());
-        add(panelSuperior, BorderLayout.NORTH);
-        add(tabbedPane, BorderLayout.CENTER);
+        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btn.setMaximumSize(new Dimension(240, 40));
+        btn.setMinimumSize(new Dimension(240, 40));
+        btn.setPreferredSize(new Dimension(240, 40));
+        btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setBackground(activo ? AZUL_POS : SIDEBAR_COLOR);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setOpaque(true);
+
+        btn.addActionListener(e -> {
+            for (Component c : sidebarPanel.getComponents()) {
+                if (c instanceof JButton) {
+                    c.setBackground(SIDEBAR_COLOR);
+                    c.repaint();
+                }
+            }
+            btn.setBackground(AZUL_POS);
+            btn.repaint();
+            cardLayout.show(contentPanel, idPanel);
+            
+              // ← AGREGAR ESTAS LÍNEAS: Forzar actualización al cambiar de panel
+    if (idPanel.equals("dashboard") && dashboard != null) {
+        dashboard.cargarDatos();
+    } else if (idPanel.equals("corte") && corteCajaFrame != null) {
+        corteCajaFrame.cargarEstado();
+    }
+});
+
+        sidebarPanel.add(btn);
     }
 
-    /**
-     * Re-aplica colores a los componentes de MainFrame que anulan el L&F por defecto.
-     */
-    public void reaplicarTemaMainFrame() {
-        Color fondo = Main.isDarkMode ? new Color(0x1E, 0x1E, 0x1E) : FONDO;
-        Color card = Main.isDarkMode ? new Color(0x2D, 0x2D, 0x2D) : Color.WHITE;
-        Color textClaro = Main.isDarkMode ? Color.WHITE : TEXTO_OSCURO;
-        Color textGris = Main.isDarkMode ? new Color(170, 170, 170) : TEXTO_GRIS;
+    private JButton crearBotonPerfil(Usuario usuario) {
+        JButton btn = new JButton() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        if (panelSuperior != null) {
-            panelSuperior.setBackground(card);
-        }
-        if (lblAppName != null) {
-            lblAppName.setForeground(Main.isDarkMode ? new Color(184, 169, 232) : new Color(120, 100, 180));
-        }
-        if (lblUserInfo != null) {
-            lblUserInfo.setForeground(textClaro);
-        }
-        if (panelInicio != null) {
-            panelInicio.setBackground(fondo);
-        }
-        if (lblWelcomeTitle != null) {
-            lblWelcomeTitle.setForeground(textClaro);
-        }
-        if (lblWelcomeSub != null) {
-            lblWelcomeSub.setForeground(textGris);
-        }
-        if (tabbedPane != null) {
-            tabbedPane.setBackground(fondo);
-        }
-        if (btnTema != null) {
-            btnTema.setText(Main.isDarkMode ? "☀️" : "🌙");
-            btnTema.repaint();
-        }
-    }
+                g2.setColor(getModel().isRollover() ? new Color(71, 85, 105) : new Color(51, 65, 85));
+                g2.fillRect(0, 0, getWidth(), getHeight());
 
+                g2.setColor(Color.WHITE);
+                g2.fillOval(18, 10, 16, 16);
+                g2.fillArc(12, 26, 28, 16, 0, 180);
 
+                g2.setColor(Color.WHITE);
+                g2.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+                g2.drawString("Mi Perfil", 50, 25);
+                g2.dispose();
+            }
+        };
 
-    /**
-     * Dibuja un gatito pequeño para el logo de la barra superior.
-     *
-     * @param g2   Contexto gráfico 2D
-     * @param cx   Centro X
-     * @param cy   Centro Y
-     * @param size Tamaño base
-     */
-    private void dibujarGatitoPequeno(Graphics2D g2, int cx, int cy, int size) {
-        // Cara del gato (círculo)
-        g2.setColor(LAVANDA);
-        g2.fillOval(cx - size, cy - size + 3, size * 2, size * 2);
-
-        // Oreja izquierda
-        Path2D orejaIzq = new Path2D.Double();
-        orejaIzq.moveTo(cx - size + 3, cy - size + 6);
-        orejaIzq.lineTo(cx - size / 2 - 2, cy - size - 7);
-        orejaIzq.lineTo(cx - 2, cy - size + 6);
-        orejaIzq.closePath();
-        g2.fill(orejaIzq);
-
-        // Oreja derecha
-        Path2D orejaDer = new Path2D.Double();
-        orejaDer.moveTo(cx + 2, cy - size + 6);
-        orejaDer.lineTo(cx + size / 2 + 2, cy - size - 7);
-        orejaDer.lineTo(cx + size - 3, cy - size + 6);
-        orejaDer.closePath();
-        g2.fill(orejaDer);
-
-        // Ojos
-        g2.setColor(Color.WHITE);
-        g2.fillOval(cx - 7, cy - 3, 6, 6);
-        g2.fillOval(cx + 1, cy - 3, 6, 6);
-        g2.setColor(TEXTO_OSCURO);
-        g2.fillOval(cx - 5, cy - 1, 3, 3);
-        g2.fillOval(cx + 3, cy - 1, 3, 3);
-
-        // Nariz
-        g2.setColor(CORAL);
-        g2.fillOval(cx - 2, cy + 3, 4, 3);
-    }
-
-    /**
-     * Termina la sesión actual y regresa a la pantalla de Login.
-     */
-    private void cerrarSesion() {
-        SessionManager.getInstancia().cerrarSesion();
-        LoginFrame loginFrame = new LoginFrame();
-        loginFrame.setVisible(true);
-        this.dispose();
-    }
-
-    /**
-     * Muestra un diálogo emergente con diseño moderno para cambiar la contraseña del usuario.
-     *
-     * @param usuario El usuario actual en sesión.
-     */
-    private void mostrarDialogoCambiarPassword(Usuario usuario) {
-        if (usuario == null) return;
+        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btn.setMaximumSize(new Dimension(240, 40));
+        btn.setMinimumSize(new Dimension(240, 40));
+        btn.setPreferredSize(new Dimension(240, 40));
+        btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setOpaque(true);
+        btn.setBackground(new Color(51, 65, 85));
         
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setPreferredSize(new Dimension(320, 150));
-        GridBagConstraints c = new GridBagConstraints();
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.insets = new Insets(6, 6, 6, 6);
+        // ← CAMBIADO: Ahora navega al panel en lugar de abrir ventana
+       btn.addActionListener(e -> {
+    cardLayout.show(contentPanel, "perfil");
+});
 
-        JLabel lblActual = new JLabel("Contraseña Actual:");
-        lblActual.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblActual.setForeground(Main.isDarkMode ? Color.WHITE : TEXTO_OSCURO);
-        JPasswordField txtActual = new JPasswordField(15);
-        txtActual.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        return btn;
+    }
 
-        JLabel lblNueva = new JLabel("Nueva Contraseña:");
-        lblNueva.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblNueva.setForeground(Main.isDarkMode ? Color.WHITE : TEXTO_OSCURO);
-        JPasswordField txtNueva = new JPasswordField(15);
-        txtNueva.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+    private void dibujarIconoMenu(Graphics2D g2, String tipo, int x, int y) {
+        g2.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g2.setColor(Color.WHITE);
 
-        JLabel lblConfirmar = new JLabel("Confirmar Nueva:");
-        lblConfirmar.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblConfirmar.setForeground(Main.isDarkMode ? Color.WHITE : TEXTO_OSCURO);
-        JPasswordField txtConfirmar = new JPasswordField(15);
-        txtConfirmar.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-
-        c.gridx = 0; c.gridy = 0; c.weightx = 0.4;
-        panel.add(lblActual, c);
-        c.gridx = 1; c.weightx = 0.6;
-        panel.add(txtActual, c);
-
-        c.gridx = 0; c.gridy = 1; c.weightx = 0.4;
-        panel.add(lblNueva, c);
-        c.gridx = 1; c.weightx = 0.6;
-        panel.add(txtNueva, c);
-
-        c.gridx = 0; c.gridy = 2; c.weightx = 0.4;
-        panel.add(lblConfirmar, c);
-        c.gridx = 1; c.weightx = 0.6;
-        panel.add(txtConfirmar, c);
-
-        int opcion = JOptionPane.showConfirmDialog(
-                this,
-                panel,
-                "🔒 Cambiar Contraseña",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE
-        );
-
-        if (opcion == JOptionPane.OK_OPTION) {
-            String actual = new String(txtActual.getPassword()).trim();
-            String nueva = new String(txtNueva.getPassword()).trim();
-            String confirmar = new String(txtConfirmar.getPassword()).trim();
-
-            // 1. Validar campos no vacíos
-            if (actual.isEmpty() || nueva.isEmpty() || confirmar.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                        "Todos los campos son obligatorios.",
-                        "Error de validación", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            // 2. Validar longitud de la nueva contraseña
-            if (nueva.length() < 4) {
-                JOptionPane.showMessageDialog(this,
-                        "La nueva contraseña debe tener al menos 4 caracteres.",
-                        "Error de validación", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            // 3. Validar que la nueva y confirmación coincidan
-            if (!nueva.equals(confirmar)) {
-                JOptionPane.showMessageDialog(this,
-                        "La nueva contraseña y la confirmación no coinciden.",
-                        "Error de validación", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            // 4. Llamar al servicio para cambiar la contraseña
-            UsuarioService service = new UsuarioService();
-            if (service.cambiarPassword(usuario.getId(), actual, nueva)) {
-                JOptionPane.showMessageDialog(this,
-                        "Contraseña cambiada exitosamente.",
-                        "Éxito", JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(this,
-                        "No se pudo cambiar la contraseña. Verifica que la contraseña actual sea correcta.",
-                        "Error", JOptionPane.ERROR_MESSAGE);
-            }
+        switch (tipo) {
+            case "dashboard":
+                g2.fillRect(x, y, 9, 9);
+                g2.fillRect(x + 11, y, 9, 9);
+                g2.fillRect(x, y + 11, 9, 9);
+                g2.fillRect(x + 11, y + 11, 9, 9);
+                break;
+            case "ventas":
+                g2.drawLine(x, y + 6, x + 6, y + 6);
+                g2.drawLine(x + 6, y + 6, x + 8, y + 14);
+                g2.drawLine(x + 8, y + 14, x + 18, y + 14);
+                g2.drawLine(x + 18, y + 14, x + 20, y + 6);
+                g2.drawLine(x + 20, y + 6, x + 8, y + 6);
+                g2.fillOval(x + 10, y + 16, 4, 4);
+                g2.fillOval(x + 16, y + 16, 4, 4);
+                break;
+            case "inventario":
+                g2.drawRect(x + 2, y + 4, 18, 14);
+                g2.drawLine(x + 2, y + 10, x + 20, y + 10);
+                g2.drawLine(x + 11, y + 4, x + 11, y + 18);
+                break;
+            case "usuarios":
+                g2.fillOval(x + 4, y + 2, 7, 7);
+                g2.fillArc(x, y + 10, 14, 10, 0, 180);
+                g2.fillOval(x + 11, y + 4, 5, 5);
+                g2.fillArc(x + 9, y + 11, 10, 8, 0, 180);
+                break;
+            case "historial":
+                g2.drawRect(x + 3, y + 2, 14, 18);
+                g2.drawLine(x + 6, y + 6, x + 14, y + 6);
+                g2.drawLine(x + 6, y + 10, x + 14, y + 10);
+                g2.drawLine(x + 6, y + 14, x + 12, y + 14);
+                break;
+            case "corte":
+                g2.drawRect(x + 2, y + 6, 16, 10);
+                g2.fillOval(x + 8, y + 9, 4, 4);
+                g2.drawLine(x + 6, y + 6, x + 6, y + 4);
+                g2.drawLine(x + 14, y + 6, x + 14, y + 4);
+                break;
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // UI PERSONALIZADA PARA EL TABBEDPANE CON COLORES PASTEL ADAPTABLES
-    // ══════════════════════════════════════════════════════════════════════
+    private void dibujarCarritoSidebar(Graphics2D g2, int x, int y, int size) {
+        g2.setColor(Color.WHITE);
+        g2.setStroke(new BasicStroke(2.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g2.drawLine(x, y + 8, x + 8, y + 8);
+        g2.drawLine(x + 8, y + 8, x + 12, y + 24);
+        g2.drawLine(x + 12, y + 24, x + size - 8, y + 24);
+        g2.drawLine(x + size - 8, y + 24, x + size, y + 10);
+        g2.drawLine(x + size, y + 10, x + 8, y + 10);
+        g2.fillOval(x + 14, y + 26, 6, 6);
+        g2.fillOval(x + size - 18, y + 26, 6, 6);
+    }
 
-    /**
-     * UI personalizada para JTabbedPane que pinta pestañas con colores pastel adaptables:
-     * - Pestaña activa: fondo lavanda (#B8A9E8), texto blanco
-     * - Pestaña inactiva: fondo blanco (claro) / #2D2D2D (oscuro), texto gris
-     */
-    private class PastelTabbedPaneUI extends BasicTabbedPaneUI {
-
-        @Override
-        protected void installDefaults() {
-            super.installDefaults();
-            // Configurar alturas y márgenes de las pestañas
-            tabAreaInsets = new Insets(8, 15, 0, 15);
-            contentBorderInsets = new Insets(0, 0, 0, 0);
-            selectedTabPadInsets = new Insets(0, 0, 0, 0);
-            tabInsets = new Insets(10, 16, 10, 16);
+    private String obtenerIniciales(Usuario usuario) {
+        if (usuario == null || usuario.getNombreCompleto() == null) return "U";
+        String[] partes = usuario.getNombreCompleto().split(" ");
+        if (partes.length >= 2) {
+            return (partes[0].charAt(0) + "" + partes[1].charAt(0)).toUpperCase();
         }
-
-        @Override
-        protected void paintTabBorder(Graphics g, int tabPlacement, int tabIndex,
-                                      int x, int y, int w, int h, boolean isSelected) {
-            // No pintar borde por defecto (usamos paintTabBackground)
-        }
-
-        @Override
-        protected void paintTabBackground(Graphics g, int tabPlacement, int tabIndex,
-                                          int x, int y, int w, int h, boolean isSelected) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            if (isSelected) {
-                // Pestaña activa: fondo lavanda con bordes redondeados arriba
-                g2.setColor(LAVANDA);
-                g2.fillRoundRect(x + 2, y + 2, w - 4, h, 12, 12);
-            } else {
-                // Pestaña inactiva: fondo adaptado al tema actual
-                g2.setColor(Main.isDarkMode ? new Color(0x2D, 0x2D, 0x2D) : Color.WHITE);
-                g2.fillRoundRect(x + 2, y + 2, w - 4, h, 12, 12);
-            }
-            g2.dispose();
-        }
-
-        @Override
-        protected void paintText(Graphics g, int tabPlacement, Font font, FontMetrics metrics,
-                                 int tabIndex, String title, Rectangle textRect, boolean isSelected) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-
-            if (isSelected) {
-                g2.setColor(Color.WHITE); // Texto blanco en pestaña activa
-            } else {
-                // Texto gris en pestaña inactiva adaptable
-                g2.setColor(Main.isDarkMode ? new Color(170, 170, 170) : TEXTO_GRIS);
-            }
-
-            g2.setFont(font);
-            g2.drawString(title, textRect.x, textRect.y + metrics.getAscent());
-            g2.dispose();
-        }
-
-        @Override
-        protected void paintContentBorder(Graphics g, int tabPlacement, int selectedIndex) {
-            // No pintar borde del contenido para un look más limpio
-        }
-
-        @Override
-        protected void paintFocusIndicator(Graphics g, int tabPlacement, Rectangle[] rects,
-                                           int tabIndex, Rectangle iconRect, Rectangle textRect,
-                                           boolean isSelected) {
-            // No pintar indicador de foco
-        }
-
-        @Override
-        protected int calculateTabHeight(int tabPlacement, int tabIndex, int fontHeight) {
-            return 42; // Altura fija para todas las pestañas
-        }
+        return partes[0].substring(0, Math.min(2, partes[0].length())).toUpperCase();
     }
 }

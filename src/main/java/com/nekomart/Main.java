@@ -3,6 +3,7 @@ package com.nekomart;
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.nekomart.ui.LoginFrame;
+import com.nekomart.utils.ThemeManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,6 +12,7 @@ import java.awt.*;
  * Clase principal (punto de entrada) de la aplicación NekoMart.
  * Encargada de inicializar el tema visual con soporte para modo claro/oscuro
  * y lanzar la primera pantalla (Login).
+ * Paleta de colores POS profesional aplicada globalmente.
  * Todo el código está comentado en español.
  */
 public class Main {
@@ -51,50 +53,50 @@ public class Main {
 
             // Configuración de colores personalizados de la paleta oscura
             UIManager.put("Panel.background", new Color(0x1E, 0x1E, 0x1E)); // Fondo #1E1E1E
-            UIManager.put("TableHeader.background", new Color(0x2D, 0x2D, 0x2D)); // Tarjetas/Cabecera #2D2D2D
+            UIManager.put("TableHeader.background", new Color(0x2D, 0x2D, 0x2D)); // Cabecera oscura
             UIManager.put("TableHeader.foreground", Color.WHITE); // Texto blanco
             UIManager.put("Table.background", new Color(0x2D, 0x2D, 0x2D)); // Fondo tabla oscuro
             UIManager.put("Table.foreground", Color.WHITE); // Texto blanco
             UIManager.put("Label.foreground", Color.WHITE); // Texto etiquetas blanco
             
-            // Botones coral #FF8B94 con texto blanco
-            UIManager.put("Button.background", new Color(255, 139, 148));
+            // Botones azul primario de la nueva paleta con texto blanco
+            UIManager.put("Button.background", ThemeManager.AZUL_PRIMARIO);
             UIManager.put("Button.foreground", Color.WHITE);
             UIManager.put("Button.arc", 8);
             
             UIManager.put("Component.arc", 8);
             UIManager.put("TextField.arc", 8);
             UIManager.put("Component.focusWidth", 2);
-            UIManager.put("Component.focusColor", new Color(184, 169, 232)); // Focus lavanda suave
+            UIManager.put("Component.focusColor", ThemeManager.AZUL_CLARO); // Focus azul POS
         } catch (Exception ex) {
             System.err.println("No se pudo establecer FlatDarkLaf: " + ex.getMessage());
         }
     }
 
     /**
-     * Configura y aplica el Tema Claro (FlatLightLaf) con colores personalizados.
+     * Configura y aplica el Tema Claro (FlatLightLaf) con colores personalizados POS.
      */
     public static void aplicarTemaClaro() {
         try {
             FlatLightLaf.setup();
 
-            // Configuración de colores personalizados de la paleta clara
-            UIManager.put("Panel.background", new Color(0xFA, 0xFA, 0xFA)); // Fondo #FAFAFA
-            UIManager.put("TableHeader.background", new Color(184, 169, 232)); // Cabecera lavanda
-            UIManager.put("TableHeader.foreground", Color.WHITE);
-            UIManager.put("Table.background", Color.WHITE); // Fondo tabla blanco
-            UIManager.put("Table.foreground", new Color(45, 55, 72)); // Texto #2D3748
-            UIManager.put("Label.foreground", new Color(45, 55, 72)); // Texto etiquetas
+            // Configuración de colores personalizados de la paleta POS
+            UIManager.put("Panel.background", ThemeManager.FONDO_PRINCIPAL); // Fondo general
+            UIManager.put("TableHeader.background", ThemeManager.AZUL_PRIMARIO); // Cabecera azul primario
+            UIManager.put("TableHeader.foreground", Color.WHITE); // Texto blanco
+            UIManager.put("Table.background", ThemeManager.BLANCO); // Fondo tabla blanco
+            UIManager.put("Table.foreground", ThemeManager.GRIS_OSCURO); // Texto principal
+            UIManager.put("Label.foreground", ThemeManager.GRIS_OSCURO); // Texto etiquetas
             
-            // Botones coral #FF8B94 con texto blanco
-            UIManager.put("Button.background", new Color(255, 139, 148));
+            // Botones azul primario de la nueva paleta con texto blanco
+            UIManager.put("Button.background", ThemeManager.AZUL_PRIMARIO);
             UIManager.put("Button.foreground", Color.WHITE);
             UIManager.put("Button.arc", 8);
             
             UIManager.put("Component.arc", 8);
             UIManager.put("TextField.arc", 8);
             UIManager.put("Component.focusWidth", 2);
-            UIManager.put("Component.focusColor", new Color(184, 169, 232)); // Focus lavanda suave
+            UIManager.put("Component.focusColor", ThemeManager.AZUL_CLARO); // Focus azul POS
         } catch (Exception ex) {
             System.err.println("No se pudo establecer FlatLightLaf: " + ex.getMessage());
         }

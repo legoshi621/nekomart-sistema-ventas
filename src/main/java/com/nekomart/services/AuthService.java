@@ -2,6 +2,7 @@ package com.nekomart.services;
 
 import com.nekomart.dao.UsuarioDAO;
 import com.nekomart.models.Usuario;
+import com.nekomart.services.LogService;
 
 /**
  * Servicio encargado de gestionar la lógica de autenticación de la aplicación.
@@ -40,7 +41,17 @@ public class AuthService {
              * el cual utiliza PasswordUtils.verifyPassword() para realizar el chequeo
              * seguro.
              */
-            return usuarioDAO.login(username.trim(), password);
+            Usuario usuario = usuarioDAO.login(username.trim(), password);
+
+            if (usuario != null) {
+                // Registrar log de inicio de sesión exitoso
+                LogService.registrar(usuario.getId(), "LOGIN", "Inicio de sesión exitoso");
+            } else {
+                // Registrar log de intento de inicio de sesión fallido
+                LogService.registrar(0, "LOGIN_FALLIDO", "Intento fallido usuario: " + username.trim());
+            }
+
+            return usuario;
 
         } catch (Exception e) {
             // Manejo de excepciones con un bloque try-catch para no interrumpir el flujo de
