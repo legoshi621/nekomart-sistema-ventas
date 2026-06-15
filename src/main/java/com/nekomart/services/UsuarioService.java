@@ -76,7 +76,7 @@ public class UsuarioService {
                 }
                 // Hashear la contraseña
                 usuario.setPasswordHash(PasswordUtils.hashPassword(passwordPlano));
-                return usuarioDAO.crear(usuario);
+                return usuarioDAO.crear(usuario, passwordPlano);
             } else {
                 // Usuario existente (Edición):
                 if (passwordPlano != null && !passwordPlano.trim().isEmpty()) {
@@ -146,4 +146,20 @@ public class UsuarioService {
             return false;
         }
     }
+    /**
+ * Cambia el estado activo de un usuario (bloquear/desbloquear).
+ *
+ * @param usuarioId ID del usuario
+ * @param activo    true para activar, false para bloquear
+ * @return true si se actualizó correctamente
+ */
+public boolean cambiarEstadoActivo(int usuarioId, boolean activo) {
+    try {
+        return usuarioDAO.cambiarEstadoActivo(usuarioId, activo);
+    } catch (Exception e) {
+        System.err.println("Error en UsuarioService.cambiarEstadoActivo: " + e.getMessage());
+        return false;
+    }
 }
+}
+

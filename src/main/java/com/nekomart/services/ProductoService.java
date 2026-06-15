@@ -1,11 +1,10 @@
 package com.nekomart.services;
 
-import com.nekomart.dao.ProductoDAO;
-import com.nekomart.models.Producto;
-import com.nekomart.services.LogService;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import com.nekomart.dao.ProductoDAO;
+import com.nekomart.models.Producto;
 
 /**
  * Servicio que gestiona la lógica de negocio de los productos.
@@ -29,6 +28,21 @@ public class ProductoService {
         } catch (Exception e) {
             System.err.println("Error al obtener productos: " + e.getMessage());
             return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Obtiene un producto por su ID.
+     *
+     * @param id ID del producto a buscar
+     * @return Objeto Producto si se encuentra, null en caso contrario
+     */
+    public Producto obtenerPorId(int id) {
+        try {
+            return productoDAO.buscarPorId(id);
+        } catch (Exception e) {
+            System.err.println("Error al obtener producto por ID: " + e.getMessage());
+            return null;
         }
     }
 
