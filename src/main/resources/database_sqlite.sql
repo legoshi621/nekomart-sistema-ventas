@@ -11,7 +11,10 @@ CREATE TABLE IF NOT EXISTS usuarios (
     password_hash TEXT NOT NULL,
     rol TEXT NOT NULL CHECK (rol IN ('ADMIN', 'EMPLEADO')),
     nombre_completo TEXT NOT NULL,
-    foto_ruta TEXT
+    foto_ruta TEXT,
+    email TEXT,
+    telefono TEXT,
+    activo INTEGER NOT NULL DEFAULT 1
 );
 
 -- 2. Tabla de Productos
@@ -66,36 +69,74 @@ CREATE TABLE IF NOT EXISTS movimientos_inventario (
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
 
+-- 6. Tabla de Devoluciones
+CREATE TABLE IF NOT EXISTS devoluciones (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_venta INTEGER NOT NULL,
+    id_detalle_venta INTEGER NOT NULL,
+    cantidad INTEGER NOT NULL CHECK (cantidad > 0),
+    motivo TEXT NOT NULL,
+    tipo_reembolso TEXT NOT NULL CHECK (tipo_reembolso IN ('EFECTIVO', 'CREDITO')),
+    fecha TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id_admin INTEGER NOT NULL,
+    FOREIGN KEY (id_venta) REFERENCES ventas(id),
+    FOREIGN KEY (id_admin) REFERENCES usuarios(id)
+);
+
+-- 7. Tabla de Cortes de Caja
+CREATE TABLE IF NOT EXISTS cortes_caja (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha_apertura TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_cierre TEXT,
+    id_admin INTEGER NOT NULL,
+    monto_inicial REAL NOT NULL DEFAULT 0,
+    monto_esperado REAL DEFAULT 0,
+    monto_real REAL DEFAULT 0,
+    diferencia REAL DEFAULT 0,
+    estado TEXT NOT NULL DEFAULT 'ABIERTO' CHECK (estado IN ('ABIERTO', 'CERRADO')),
+    FOREIGN KEY (id_admin) REFERENCES usuarios(id)
+);
+
+-- 8. Tabla de Logs del Sistema (Auditoría)
+CREATE TABLE IF NOT EXISTS logs_sistema (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha_hora TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id_usuario INTEGER,
+    accion TEXT NOT NULL,
+    descripcion TEXT,
+    ip_maquina TEXT DEFAULT 'LOCAL'
+);
+
 -- ============================================
 -- DATOS DE EJEMPLO
 -- ============================================
 
 -- Usuario Administrador por defecto
 -- Contraseña: admin123
-INSERT INTO usuarios (username, password_hash, rol, nombre_completo, foto_ruta)
-SELECT 'admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'ADMIN', 'Administrador NekoMart', 'https://i.pravatar.cc/150?img=1'
+INSERT INTO usuarios (username, password_hash, rol, nombre_completo, foto_ruta, email, telefono, activo)
+SELECT 'admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'ADMIN', 'Administrador NekoMart', 'https://i.pravatar.cc/150?img=1', 'admin@nekomart.com', '555-0001', 1
 WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE username = 'admin');
 
 -- Empleados de ejemplo
 -- Contraseña: user123
-INSERT INTO usuarios (username, password_hash, rol, nombre_completo, foto_ruta)
-SELECT 'cami621', 'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', 'EMPLEADO', 'Camila López', 'https://i.pravatar.cc/150?img=5'
+INSERT INTO usuarios (username, password_hash, rol, nombre_completo, foto_ruta, email, telefono, activo)
+SELECT 'cami621', 'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', 'EMPLEADO', 'Camila López', 'https://i.pravatar.cc/150?img=5', 'camila@nekomart.com', '555-0002', 1
 WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE username = 'cami621');
 
-INSERT INTO usuarios (username, password_hash, rol, nombre_completo, foto_ruta)
-SELECT 'cajera1', 'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', 'EMPLEADO', 'María García', 'https://i.pravatar.cc/150?img=9'
+INSERT INTO usuarios (username, password_hash, rol, nombre_completo, foto_ruta, email, telefono, activo)
+SELECT 'cajera1', 'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', 'EMPLEADO', 'María García', 'https://i.pravatar.cc/150?img=9', 'maria@nekomart.com', '555-0003', 1
 WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE username = 'cajera1');
 
-INSERT INTO usuarios (username, password_hash, rol, nombre_completo, foto_ruta)
-SELECT 'cajera2', 'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', 'EMPLEADO', 'Ana Martínez', 'https://i.pravatar.cc/150?img=10'
+INSERT INTO usuarios (username, password_hash, rol, nombre_completo, foto_ruta, email, telefono, activo)
+SELECT 'cajera2', 'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', 'EMPLEADO', 'Ana Martínez', 'https://i.pravatar.cc/150?img=10', 'ana@nekomart.com', '555-0004', 1
 WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE username = 'cajera2');
 
-INSERT INTO usuarios (username, password_hash, rol, nombre_completo, foto_ruta)
-SELECT 'supervisor', 'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', 'EMPLEADO', 'Carlos Ruiz', 'https://i.pravatar.cc/150?img=12'
+INSERT INTO usuarios (username, password_hash, rol, nombre_completo, foto_ruta, email, telefono, activo)
+SELECT 'supervisor', 'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', 'EMPLEADO', 'Carlos Ruiz', 'https://i.pravatar.cc/150?img=12', 'carlos@nekomart.com', '555-0005', 1
 WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE username = 'supervisor');
 
-INSERT INTO usuarios (username, password_hash, rol, nombre_completo, foto_ruta)
-SELECT 'admin2', 'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', 'ADMIN', 'Roberto Sánchez', 'https://i.pravatar.cc/150?img=16'
+INSERT INTO usuarios (username, password_hash, rol, nombre_completo, foto_ruta, email, telefono, activo)
+SELECT 'admin2', 'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', 'ADMIN', 'Roberto Sánchez', 'https://i.pravatar.cc/150?img=16', 'roberto@nekomart.com', '555-0006', 1
 WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE username = 'admin2');
 
 -- 20 Productos de belleza de ejemplo
@@ -178,41 +219,3 @@ WHERE NOT EXISTS (SELECT 1 FROM productos WHERE codigo = 'CHN019');
 INSERT INTO productos (codigo, nombre, precio, stock, stock_minimo, categoria, activo, fecha_caducidad, lote, imagen_ruta)
 SELECT 'CHN020', 'Organizador de Maquillaje Acrílico', 21.00, 15, 3, 'Accesorios', 1, date('now', '+22 months'), 'L2026020', 'https://images.unsplash.com/photo-1631730502808-9dd5a5e14061?w=400'
 WHERE NOT EXISTS (SELECT 1 FROM productos WHERE codigo = 'CHN020');
-
--- 6. Tabla de Devoluciones
-CREATE TABLE IF NOT EXISTS devoluciones (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_venta INTEGER NOT NULL,
-    id_detalle_venta INTEGER NOT NULL,
-    cantidad INTEGER NOT NULL CHECK (cantidad > 0),
-    motivo TEXT NOT NULL,
-    tipo_reembolso TEXT NOT NULL CHECK (tipo_reembolso IN ('EFECTIVO', 'CREDITO')),
-    fecha TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    id_admin INTEGER NOT NULL,
-    FOREIGN KEY (id_venta) REFERENCES ventas(id),
-    FOREIGN KEY (id_admin) REFERENCES usuarios(id)
-);
-
--- 8. Tabla de Logs del Sistema (Auditoría)
-CREATE TABLE IF NOT EXISTS logs_sistema (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    fecha_hora TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    id_usuario INTEGER,
-    accion TEXT NOT NULL,
-    descripcion TEXT,
-    ip_maquina TEXT DEFAULT 'LOCAL'
-);
-
--- 7. Tabla de Cortes de Caja
-CREATE TABLE IF NOT EXISTS cortes_caja (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    fecha_apertura TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_cierre TEXT,
-    id_admin INTEGER NOT NULL,
-    monto_inicial REAL NOT NULL DEFAULT 0,
-    monto_esperado REAL DEFAULT 0,
-    monto_real REAL DEFAULT 0,
-    diferencia REAL DEFAULT 0,
-    estado TEXT NOT NULL DEFAULT 'ABIERTO' CHECK (estado IN ('ABIERTO', 'CERRADO')),
-    FOREIGN KEY (id_admin) REFERENCES usuarios(id)
-);
